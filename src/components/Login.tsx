@@ -33,11 +33,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleQuickLogin = (user: string) => {
-    setUsername(user);
-    setPassword('123456'); // dummy password for mock
-  };
-
   return (
     <div style={styles.container}>
       <div className="glass animate-fade-in" style={styles.card}>
@@ -105,37 +100,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             {loading ? 'Iniciando sesión...' : 'Ingresar'}
           </button>
         </form>
-
-        <div style={styles.divider}>
-          <span style={styles.dividerText}>Acceso Rápido de Prueba</span>
-        </div>
-
-        <div style={styles.quickAccessGrid}>
-          <button 
-            type="button"
-            className="btn btn-secondary" 
-            onClick={() => handleQuickLogin('admin')}
-            style={styles.quickBtn}
-          >
-            Administrador (admin)
-          </button>
-          <button 
-            type="button"
-            className="btn btn-secondary" 
-            onClick={() => handleQuickLogin('profesor1')}
-            style={styles.quickBtn}
-          >
-            Profesor Carlos (profesor1)
-          </button>
-          <button 
-            type="button"
-            className="btn btn-secondary" 
-            onClick={() => handleQuickLogin('profesor2')}
-            style={styles.quickBtn}
-          >
-            Profesor María (profesor2)
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -227,26 +191,4 @@ const styles = {
     color: 'var(--c-red)',
     fontWeight: 500,
   },
-  divider: {
-    margin: '1.5rem 0',
-    position: 'relative' as const,
-    textAlign: 'center' as const,
-  },
-  dividerText: {
-    backgroundColor: 'var(--bg-secondary)',
-    padding: '0 0.75rem',
-    fontSize: '0.8rem',
-    color: 'var(--text-muted)',
-    position: 'relative' as const,
-    zIndex: 1,
-  },
-  quickAccessGrid: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.5rem',
-  },
-  quickBtn: {
-    fontSize: '0.85rem',
-    padding: '0.5rem 1rem',
-  }
 };

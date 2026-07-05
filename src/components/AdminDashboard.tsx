@@ -55,20 +55,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     grupoId: '' as string
   });
 
-  // Loading all data
+  // Loading all data. Cada petición es independiente: si una falla
+  // (p.ej. backend caído para un recurso), las demás igual se cargan.
   const loadData = async () => {
-    try {
-      const g = await api.getGrupos();
-      setGrupos(g);
-      
-      const p = await api.getProfesores();
-      setProfesores(p);
-      
-      const e = await api.getEstudiantes();
-      setEstudiantes(e);
-    } catch (err) {
-      console.error('Error al cargar datos:', err);
-    }
+    const [gRes, pRes, eRes] = await Promise.allSettled([
+      api.getGrupos(),
+      api.getProfesores(),
+      api.getEstudiantes()
+    ]);
+
+    if (gRes.status === 'fulfilled') setGrupos(gRes.value);
+    else console.error('Error al cargar grupos:', gRes.reason);
+
+    if (pRes.status === 'fulfilled') setProfesores(pRes.value);
+    else console.error('Error al cargar profesores:', pRes.reason);
+
+    if (eRes.status === 'fulfilled') setEstudiantes(eRes.value);
+    else console.error('Error al cargar estudiantes:', eRes.reason);
   };
 
   useEffect(() => {
