@@ -13,6 +13,7 @@ export interface Profesor {
   telefono?: string;
   fechaDeNacimiento?: string;
   correo?: string;
+  activo?: boolean;
 }
 
 export interface Estudiante {
@@ -25,6 +26,7 @@ export interface Estudiante {
   grupoId?: string | null;
   nombreGrupo?: string | null;
   username?: string | null;
+  activo?: boolean;
 }
 
 export interface Grupo {

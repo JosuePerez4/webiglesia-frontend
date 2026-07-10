@@ -1,0 +1,60 @@
+.attendanceItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.attendanceItem:hover {
+  border-color: var(--text-muted);
+}
+
+.checkboxWrapper {
+  position: relative;
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5rem;
+}
+
+.checkboxWrapper input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkboxSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.checkboxSlider:before {
+  position: absolute;
+  content: "";
+  height: 1.125rem;
+  width: 1.125rem;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.checkboxWrapper input:checked + .checkboxSlider {
+  background-color: var(--success);
+}
+
+.checkboxWrapper input:checked + .checkboxSlider:before {
+  transform: translateX(1.25rem);
+}

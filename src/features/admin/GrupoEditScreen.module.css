@@ -1,0 +1,11 @@
+.splitPanels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 860px) {
+  .splitPanels {
+    grid-template-columns: 1fr;
+  }
+}

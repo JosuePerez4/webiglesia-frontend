@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import { api } from '../services/api';
-import type { Usuario } from '../types';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../../services/api';
+import { useAuth } from '../../context/useAuth';
+import { homeForRole } from '../../routes/roleHome';
 import { Lock, User, Church, AlertCircle } from 'lucide-react';
 
-interface LoginProps {
-  onLoginSuccess: (usuario: Usuario) => void;
-}
+export function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -23,11 +24,11 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      // In a real app we might pass a password.
-      const res = await api.login(username.trim().toLowerCase(), password);
-      onLoginSuccess(res);
-    } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+      const usuario = await api.login(username.trim().toLowerCase(), password);
+      login(usuario);
+      navigate(homeForRole(usuario.rol), { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al iniciar sesión. Verifica tus credenciales.');
     } finally {
       setLoading(false);
     }
@@ -38,12 +39,11 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       <div className="glass animate-fade-in" style={styles.card}>
         <div style={styles.header}>
           <div style={styles.logoContainer}>
-            <img 
-              src="/Foursquare_Church_logo.svg.webp" 
-              alt="Escudo Iglesia" 
+            <img
+              src="/Foursquare_Church_logo.svg.webp"
+              alt="Escudo Iglesia"
               style={styles.logo}
               onError={(e) => {
-                // fallback if not copied yet or failed
                 e.currentTarget.style.display = 'none';
               }}
             />
@@ -91,19 +91,14 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </div>
           </div>
 
-          <button 
-            type="submit" 
-            className="btn btn-primary" 
-            disabled={loading}
-            style={styles.submitBtn}
-          >
+          <button type="submit" className="btn btn-primary" disabled={loading} style={styles.submitBtn}>
             {loading ? 'Iniciando sesión...' : 'Ingresar'}
           </button>
         </form>
       </div>
     </div>
   );
-};
+}
 
 const styles = {
   container: {
@@ -135,7 +130,7 @@ const styles = {
     objectFit: 'contain' as const,
   },
   fallbackLogoIcon: {
-    display: 'none', // hidden if image loads, handled via onerror helper if needed
+    display: 'none',
   },
   title: {
     fontSize: '2rem',
