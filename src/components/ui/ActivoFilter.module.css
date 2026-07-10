@@ -1,0 +1,38 @@
+.group {
+  display: inline-flex;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.btn {
+  padding: 0.6rem 0.9rem;
+  background: var(--bg-secondary);
+  border: none;
+  border-right: 1px solid var(--border-color);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn:last-child {
+  border-right: none;
+}
+
+.btn:hover {
+  color: var(--text-primary);
+}
+
+.active {
+  background: var(--c-blue);
+  color: white;
+}
+
+.active:hover {
+  color: white;
+}

@@ -1,0 +1,17 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.blue { background-color: rgba(24, 78, 121, 0.1); color: var(--c-blue); }
+.purple { background-color: rgba(90, 65, 120, 0.1); color: var(--c-purple); }
+.gold { background-color: rgba(215, 180, 72, 0.18); color: #8a6d1f; }
+.red { background-color: rgba(158, 40, 60, 0.1); color: var(--c-red); }
+.success { background-color: rgba(16, 185, 129, 0.12); color: var(--success); }
+.neutral { background-color: var(--border-color); color: var(--text-primary); }
