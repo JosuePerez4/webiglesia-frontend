@@ -15,6 +15,7 @@ import { ProfesorFormModal, type ProfesorFormValues } from './ProfesorFormModal'
 import type { Profesor } from '../../types';
 import type { AdminOutletContext } from './AdminLayout';
 import dataTableStyles from '../../components/ui/DataTable.module.css';
+import styles from './ProfesoresTab.module.css';
 
 export function ProfesoresTab() {
   const { refetchProfesores: refetchProfesorCount } = useOutletContext<AdminOutletContext>();
@@ -97,8 +98,8 @@ export function ProfesoresTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+      <div className={styles.toolbar}>
+        <div className={styles.filters}>
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar profesores..." />
           <ActivoFilter value={activoFilter} onChange={setActivoFilter} />
         </div>

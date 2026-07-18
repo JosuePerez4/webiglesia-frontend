@@ -9,6 +9,7 @@ import { Badge } from '../../components/ui/Badge';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import type { Grupo } from '../../types';
 import type { AdminOutletContext } from './AdminLayout';
+import styles from './GruposTab.module.css';
 
 export function GruposTab() {
   const { grupos, refetchGrupos } = useOutletContext<AdminOutletContext>();
@@ -45,7 +46,7 @@ export function GruposTab() {
         g.profesores && g.profesores.length > 0 ? (
           g.profesores.map((p) => `${p.nombre} ${p.apellido}`).join(', ')
         ) : (
-          <span style={{ color: 'var(--text-muted)' }}>Sin asignar</span>
+          <span className={styles.mutedText}>Sin asignar</span>
         ),
     },
     {
@@ -56,7 +57,7 @@ export function GruposTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+      <div className={styles.toolbar}>
         <SearchInput value={search} onChange={setSearch} placeholder="Buscar grupos..." />
         <button className="btn btn-primary" onClick={() => navigate('/admin/grupos/nuevo')}>
           <Plus size={18} /> Crear Grupo

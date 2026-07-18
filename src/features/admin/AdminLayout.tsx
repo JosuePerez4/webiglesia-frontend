@@ -9,6 +9,7 @@ import { StatCard } from '../../components/ui/StatCard';
 import { Tabs } from '../../components/ui/Tabs';
 import type { Estudiante, Grupo, Profesor } from '../../types';
 import styles from './AdminLayout.module.css';
+import statStyles from '../../components/ui/StatCard.module.css';
 
 export interface AdminOutletContext {
   grupos: Grupo[];
@@ -33,8 +34,6 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 'all' explícito: el backend ahora filtra solo activos por defecto, y estos contadores
-  // del panel deben reflejar el total real registrado en el sistema.
   const { grupos, loading: loadingGrupos, refetch: refetchGrupos } = useGrupos();
   const { profesores, loading: loadingProfesores, refetch: refetchProfesores } = useProfesores('all');
   const { estudiantes, loading: loadingEstudiantes, refetch: refetchEstudiantes } = useEstudiantes(undefined, 'all');
@@ -66,9 +65,9 @@ export function AdminLayout() {
 
       <div className="container animate-fade-in" style={{ paddingBottom: '4rem' }}>
         <div className={styles.statCards}>
-          <StatCard icon={<BookOpen size={22} color="white" />} iconBg="var(--c-blue)" value={grupos.length} label="Grupos/Cursos" />
-          <StatCard icon={<GraduationCap size={22} color="white" />} iconBg="var(--c-purple)" value={profesores.length} label="Profesores" />
-          <StatCard icon={<Users size={22} color="white" />} iconBg="var(--c-gold)" value={estudiantes.length} label="Estudiantes" />
+          <StatCard icon={<BookOpen size={22} color="white" />} colorClass={statStyles.iconBlue} value={grupos.length} label="Grupos/Cursos" />
+          <StatCard icon={<GraduationCap size={22} color="white" />} colorClass={statStyles.iconPurple} value={profesores.length} label="Profesores" />
+          <StatCard icon={<Users size={22} color="white" />} colorClass={statStyles.iconGold} value={estudiantes.length} label="Estudiantes" />
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => navigate(`/admin/${v}`)} items={TAB_ITEMS} />
