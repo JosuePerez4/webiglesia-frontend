@@ -9,9 +9,9 @@
   white-space: nowrap;
 }
 
-.blue { background-color: rgba(24, 78, 121, 0.1); color: var(--c-blue); }
-.purple { background-color: rgba(90, 65, 120, 0.1); color: var(--c-purple); }
-.gold { background-color: rgba(215, 180, 72, 0.18); color: #8a6d1f; }
-.red { background-color: rgba(158, 40, 60, 0.1); color: var(--c-red); }
-.success { background-color: rgba(16, 185, 129, 0.12); color: var(--success); }
+.blue { background-color: rgba(26, 82, 118, 0.1); color: var(--c-blue); }
+.purple { background-color: rgba(108, 52, 131, 0.1); color: var(--c-purple); }
+.gold { background-color: rgba(212, 160, 23, 0.15); color: #9a7b10; }
+.red { background-color: rgba(192, 57, 43, 0.1); color: var(--c-red); }
+.success { background-color: rgba(26, 188, 156, 0.12); color: var(--success); }
 .neutral { background-color: var(--border-color); color: var(--text-primary); }

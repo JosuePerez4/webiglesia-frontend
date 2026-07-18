@@ -26,7 +26,7 @@
 }
 
 .trigger[data-state='active'] {
-  background: rgba(24, 78, 121, 0.1);
+  background: rgba(26, 82, 118, 0.1);
   color: var(--c-blue);
 }
 
