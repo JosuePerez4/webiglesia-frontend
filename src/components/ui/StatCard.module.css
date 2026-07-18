@@ -4,6 +4,13 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .icon {
@@ -15,6 +22,11 @@
   justify-content: center;
   flex-shrink: 0;
 }
+
+.iconBlue { background: rgba(26, 82, 118, 0.1); color: var(--c-blue); }
+.iconGold { background: rgba(212, 160, 23, 0.12); color: var(--c-gold); }
+.iconTeal { background: rgba(26, 188, 156, 0.12); color: var(--c-teal); }
+.iconPurple { background: rgba(108, 52, 131, 0.1); color: var(--c-purple); }
 
 .value {
   display: block;

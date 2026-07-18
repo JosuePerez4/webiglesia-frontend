@@ -3,15 +3,15 @@ import styles from './StatCard.module.css';
 
 interface StatCardProps {
   icon: ReactNode;
-  iconBg: string;
+  colorClass?: string;
   value: number | string;
   label: string;
 }
 
-export function StatCard({ icon, iconBg, value, label }: StatCardProps) {
+export function StatCard({ icon, colorClass = styles.iconBlue, value, label }: StatCardProps) {
   return (
     <div className={`glass card ${styles.statCard}`}>
-      <div className={styles.icon} style={{ backgroundColor: iconBg }}>
+      <div className={`${styles.icon} ${colorClass}`}>
         {icon}
       </div>
       <div>
