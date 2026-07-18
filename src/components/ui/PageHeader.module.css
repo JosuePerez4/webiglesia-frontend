@@ -67,3 +67,13 @@
   gap: 0.75rem;
   flex-shrink: 0;
 }
+
+@media (max-width: 480px) {
+  .inner {
+    padding: 0.75rem 1rem;
+  }
+
+  .brandText {
+    display: none;
+  }
+}
