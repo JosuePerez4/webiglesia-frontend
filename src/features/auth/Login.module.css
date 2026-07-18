@@ -1,0 +1,113 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 85vh;
+  padding: 1rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 450px;
+  padding: 2.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.logoContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  height: 80px;
+  object-fit: contain;
+}
+
+.fallbackLogoIcon {
+  display: none;
+}
+
+.title {
+  font-size: 2rem;
+  font-family: var(--font-display);
+  color: var(--c-blue);
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: left;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.input {
+  padding-left: 2.75rem;
+}
+
+.submitBtn {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.errorBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.errorText {
+  font-size: 0.875rem;
+  color: var(--c-red);
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .logo {
+    height: 60px;
+  }
+}
