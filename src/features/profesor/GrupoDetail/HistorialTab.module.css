@@ -5,6 +5,145 @@
   align-items: start;
 }
 
+.datesPanel {
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  min-height: 300px;
+}
+
+.datesPanel h3 {
+  color: var(--c-blue);
+  margin-bottom: 1rem;
+}
+
+.dateList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dateBtn {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.dateBtn:hover {
+  background-color: var(--bg-primary);
+}
+
+.dateBtnSelected {
+  background-color: rgba(26, 82, 118, 0.1);
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+.dateInfo {
+  text-align: left;
+}
+
+.dateInfo strong {
+  display: block;
+}
+
+.dateInfo span {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.reportPanel {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  min-height: 300px;
+}
+
+.reportHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.reportHeader h3 {
+  color: var(--c-blue);
+}
+
+.reportSubtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.studentList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.studentRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+}
+
+.studentRowPresent {
+  background-color: rgba(26, 188, 156, 0.08);
+  border: 1px solid rgba(26, 188, 156, 0.2);
+}
+
+.studentRowAbsent {
+  background-color: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.statusPresent {
+  color: var(--success);
+  background-color: rgba(26, 188, 156, 0.15);
+}
+
+.statusAbsent {
+  color: var(--danger);
+  background-color: rgba(192, 57, 43, 0.15);
+}
+
+.emptyReport {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+  color: var(--text-muted);
+}
+
+.emptyReportIcon {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
 @media (max-width: 768px) {
   .twoColLayout {
     grid-template-columns: 1fr;

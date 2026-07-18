@@ -9,7 +9,7 @@ import { Tabs } from '../../../components/ui/Tabs';
 import { EstudiantesTab } from './EstudiantesTab';
 import { AsistenciaTab } from './AsistenciaTab';
 import { HistorialTab } from './HistorialTab';
-import modalStyles from '../../../components/ui/Modal.module.css';
+import styles from './GrupoDetail.module.css';
 
 const TAB_ITEMS = [
   { value: 'estudiantes', label: (<><Users size={16} /> Estudiantes</>) },
@@ -49,43 +49,43 @@ export function GrupoDetail() {
   };
 
   if (loading || !grupo) {
-    return <p style={{ color: 'var(--text-muted)' }}>Cargando grupo...</p>;
+    return <p className={styles.loadingText}>Cargando grupo...</p>;
   }
 
   return (
     <div>
-      <button onClick={() => navigate('/profesor')} className="btn btn-secondary" style={{ marginBottom: '1.5rem' }}>
+      <button onClick={() => navigate('/profesor')} className={`btn btn-secondary ${styles.backButton}`}>
         <ArrowLeft size={16} />
         <span>Volver a Mis Clases</span>
       </button>
 
-      <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className={`glass ${styles.groupCard}`}>
+        <div className={styles.groupHeader}>
           {isEditingName ? (
-            <div style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '500px' }}>
-              <input type="text" value={nameForm} onChange={(e) => setNameForm(e.target.value)} style={{ fontSize: '1.5rem', fontWeight: 'bold' }} />
-              <button onClick={handleSaveName} className="btn btn-success" style={{ padding: '0.5rem 1rem' }}>
+            <div className={styles.nameForm}>
+              <input type="text" value={nameForm} onChange={(e) => setNameForm(e.target.value)} className={styles.nameInput} />
+              <button onClick={handleSaveName} className={`btn btn-success ${styles.nameFormBtn}`}>
                 <Save size={18} />
               </button>
-              <button onClick={() => setIsEditingName(false)} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+              <button onClick={() => setIsEditingName(false)} className={`btn btn-secondary ${styles.nameFormBtn}`}>
                 <X size={18} />
               </button>
             </div>
           ) : (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <h1 style={{ fontSize: '2rem', margin: 0, color: 'var(--c-blue)' }}>{grupo.nombre}</h1>
-                <button onClick={startEditingName} className={modalStyles.closeBtn} title="Editar nombre del grupo">
+              <div className={styles.nameRow}>
+                <h1 className={styles.nameTitle}>{grupo.nombre}</h1>
+                <button onClick={startEditingName} className={styles.nameEditBtn} title="Editar nombre del grupo">
                   <Edit2 size={16} />
                 </button>
               </div>
-              <p style={{ color: 'var(--text-secondary)' }}>
+              <p className={styles.professorName}>
                 Profesor: {grupo.profesores?.map((p) => `${p.nombre} ${p.apellido}`).join(', ') || 'Sin asignar'}
               </p>
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className={styles.badges}>
             <Badge tone="blue" icon={<Users size={14} />}>
               {grupo.estudiantes?.length || 0} Inscritos
             </Badge>
