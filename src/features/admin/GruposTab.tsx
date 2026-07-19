@@ -1,18 +1,21 @@
 import { useState } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Edit2, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
+import { qkRoot } from '../../services/queryKeys';
 import { useToast } from '../../components/ui/useToast';
+import { useGrupos } from '../../hooks/useGrupos';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import type { Grupo } from '../../types';
-import type { AdminOutletContext } from './AdminLayout';
 import styles from './GruposTab.module.css';
 
 export function GruposTab() {
-  const { grupos, refetchGrupos } = useOutletContext<AdminOutletContext>();
+  const { grupos } = useGrupos();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -26,7 +29,7 @@ export function GruposTab() {
     try {
       await api.eliminarGrupo(grupoToDelete.id);
       showToast('Grupo eliminado correctamente');
-      refetchGrupos();
+      await queryClient.invalidateQueries({ queryKey: qkRoot.grupos });
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Error al eliminar el grupo', 'error');
     } finally {

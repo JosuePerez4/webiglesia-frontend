@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Edit2, GraduationCap, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
+import { qkRoot } from '../../services/queryKeys';
 import { useToast } from '../../components/ui/useToast';
 import { useProfesores } from '../../hooks/useProfesores';
 import { SearchInput } from '../../components/ui/SearchInput';
@@ -13,17 +14,16 @@ import { ActivoFilter } from '../../components/ui/ActivoFilter';
 import { activoFilterToBoolean, type ActivoFilterValue } from '../../components/ui/activoFilterValue';
 import { ProfesorFormModal, type ProfesorFormValues } from './ProfesorFormModal';
 import type { Profesor } from '../../types';
-import type { AdminOutletContext } from './AdminLayout';
 import dataTableStyles from '../../components/ui/DataTable.module.css';
 import styles from './ProfesoresTab.module.css';
 
 export function ProfesoresTab() {
-  const { refetchProfesores: refetchProfesorCount } = useOutletContext<AdminOutletContext>();
+  const queryClient = useQueryClient();
   const { showToast } = useToast();
 
   const [search, setSearch] = useState('');
   const [activoFilter, setActivoFilter] = useState<ActivoFilterValue>('all');
-  const { profesores, refetch: refetchProfesores } = useProfesores(activoFilterToBoolean(activoFilter));
+  const { profesores } = useProfesores(activoFilterToBoolean(activoFilter));
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProfesor, setEditingProfesor] = useState<Profesor | null>(null);
@@ -52,8 +52,7 @@ export function ProfesoresTab() {
         showToast('Profesor creado correctamente');
       }
       setIsModalOpen(false);
-      refetchProfesores();
-      refetchProfesorCount();
+      await queryClient.invalidateQueries({ queryKey: qkRoot.profesores });
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Error al guardar el profesor', 'error');
     }
@@ -65,8 +64,7 @@ export function ProfesoresTab() {
     try {
       await api.cambiarEstadoUsuario(profesorToToggle.id, nuevoEstado);
       showToast(nuevoEstado ? 'Profesor reactivado correctamente' : 'Profesor eliminado correctamente');
-      refetchProfesores();
-      refetchProfesorCount();
+      await queryClient.invalidateQueries({ queryKey: qkRoot.profesores });
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del profesor', 'error');
     } finally {

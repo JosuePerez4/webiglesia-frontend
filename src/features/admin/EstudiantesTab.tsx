@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Edit2, Plus, RotateCcw, Trash2, Users } from 'lucide-react';
 import { api } from '../../services/api';
+import { qkRoot } from '../../services/queryKeys';
 import { useToast } from '../../components/ui/useToast';
 import { useEstudiantes } from '../../hooks/useEstudiantes';
+import { useGrupos } from '../../hooks/useGrupos';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
 import { Avatar } from '../../components/ui/Avatar';
@@ -13,17 +15,17 @@ import { ActivoFilter } from '../../components/ui/ActivoFilter';
 import { activoFilterToBoolean, type ActivoFilterValue } from '../../components/ui/activoFilterValue';
 import { EstudianteFormModal, type EstudianteFormValues } from './EstudianteFormModal';
 import type { Estudiante } from '../../types';
-import type { AdminOutletContext } from './AdminLayout';
 import dataTableStyles from '../../components/ui/DataTable.module.css';
 import styles from './EstudiantesTab.module.css';
 
 export function EstudiantesTab() {
-  const { refetchEstudiantes: refetchEstudianteCount, grupos, refetchGrupos } = useOutletContext<AdminOutletContext>();
+  const queryClient = useQueryClient();
   const { showToast } = useToast();
 
   const [search, setSearch] = useState('');
   const [activoFilter, setActivoFilter] = useState<ActivoFilterValue>('all');
-  const { estudiantes, refetch: refetchEstudiantes } = useEstudiantes(undefined, activoFilterToBoolean(activoFilter));
+  const { estudiantes } = useEstudiantes(undefined, activoFilterToBoolean(activoFilter));
+  const { grupos } = useGrupos();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEstudiante, setEditingEstudiante] = useState<Estudiante | null>(null);
@@ -72,9 +74,10 @@ export function EstudiantesTab() {
 
       showToast(editingEstudiante ? 'Estudiante actualizado correctamente' : 'Estudiante creado correctamente');
       setIsModalOpen(false);
-      refetchEstudiantes();
-      refetchEstudianteCount();
-      refetchGrupos();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+      ]);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Error al guardar el estudiante', 'error');
     }
@@ -86,8 +89,7 @@ export function EstudiantesTab() {
     try {
       await api.cambiarEstadoUsuario(estudianteToToggle.id, nuevoEstado);
       showToast(nuevoEstado ? 'Estudiante reactivado correctamente' : 'Estudiante eliminado correctamente');
-      refetchEstudiantes();
-      refetchEstudianteCount();
+      await queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes });
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del estudiante', 'error');
     } finally {
