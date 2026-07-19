@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Calendar, CalendarCheck, Clock, Edit2, Save, Users, X } from 'lucide-react';
 import { api } from '../../../services/api';
+import { qkRoot } from '../../../services/queryKeys';
 import { useGrupoDetail } from '../../../hooks/useGrupoDetail';
 import { useToast } from '../../../components/ui/useToast';
 import { Badge } from '../../../components/ui/Badge';
@@ -21,7 +23,8 @@ export function GrupoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { grupo, clases, loading, refetch } = useGrupoDetail(id);
+  const { grupo, clases, loading } = useGrupoDetail(id);
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState('estudiantes');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -33,19 +36,23 @@ export function GrupoDetail() {
     setIsEditingName(true);
   };
 
-  const handleSaveName = async () => {
-    if (!grupo || !nameForm.trim()) return;
-    try {
-      await api.editarGrupo(grupo.id, {
+  const guardarNombre = useMutation({
+    mutationFn: () =>
+      api.editarGrupo(grupo!.id, {
         nombre: nameForm,
-        profesorIds: grupo.profesorIds || [],
-        estudianteIds: grupo.estudianteIds || [],
-      });
+        profesorIds: grupo!.profesorIds || [],
+        estudianteIds: grupo!.estudianteIds || [],
+      }),
+    onSuccess: async () => {
       setIsEditingName(false);
-      refetch();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al actualizar el nombre de la clase', 'error');
-    }
+      await queryClient.invalidateQueries({ queryKey: qkRoot.grupos });
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al actualizar el nombre de la clase', 'error'),
+  });
+
+  const handleSaveName = () => {
+    if (!grupo || !nameForm.trim()) return;
+    guardarNombre.mutate();
   };
 
   if (loading || !grupo) {
@@ -98,8 +105,8 @@ export function GrupoDetail() {
         <Tabs value={activeTab} onValueChange={setActiveTab} items={TAB_ITEMS} variant="underline" />
       </div>
 
-      {activeTab === 'estudiantes' && <EstudiantesTab grupo={grupo} onChanged={refetch} />}
-      {activeTab === 'asistencia' && <AsistenciaTab grupo={grupo} onSubmitted={() => { refetch(); setActiveTab('historial'); }} />}
+      {activeTab === 'estudiantes' && <EstudiantesTab grupo={grupo} />}
+      {activeTab === 'asistencia' && <AsistenciaTab grupo={grupo} onSubmitted={() => setActiveTab('historial')} />}
       {activeTab === 'historial' && <HistorialTab grupo={grupo} clases={clases} />}
     </div>
   );

@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
 import { api } from '../../../services/api';
+import { qk } from '../../../services/queryKeys';
 import { useToast } from '../../../components/ui/useToast';
 import type { Grupo } from '../../../types';
 import styles from './AsistenciaTab.module.css';
@@ -20,6 +22,7 @@ function initialChecklist(grupo: Grupo) {
 
 export function AsistenciaTab({ grupo, onSubmitted }: AsistenciaTabProps) {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [checklist, setChecklist] = useState<{ [studentId: string]: boolean }>(() => initialChecklist(grupo));
 
@@ -27,20 +30,24 @@ export function AsistenciaTab({ grupo, onSubmitted }: AsistenciaTabProps) {
     setChecklist((prev) => ({ ...prev, [studentId]: !prev[studentId] }));
   };
 
-  const handleSubmit = async () => {
-    const records = Object.keys(checklist).map((estudianteId) => ({
-      estudianteId,
-      presente: checklist[estudianteId],
-    }));
-
-    try {
-      await api.registrarAsistencia(grupo.id, attendanceDate, records);
+  const registrar = useMutation({
+    mutationFn: () => {
+      const records = Object.keys(checklist).map((estudianteId) => ({
+        estudianteId,
+        presente: checklist[estudianteId],
+      }));
+      return api.registrarAsistencia(grupo.id, attendanceDate, records);
+    },
+    onSuccess: async () => {
+      // Solo cambian las clases del grupo; el grupo en sí no hace falta recargarlo.
+      await queryClient.invalidateQueries({ queryKey: qk.clasesGrupo(grupo.id) });
       showToast('¡Asistencia registrada correctamente!');
       onSubmitted();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al registrar asistencia', 'error');
-    }
-  };
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al registrar asistencia', 'error'),
+  });
+
+  const handleSubmit = () => registrar.mutate();
 
   const hasStudents = grupo.estudiantes && grupo.estudiantes.length > 0;
 

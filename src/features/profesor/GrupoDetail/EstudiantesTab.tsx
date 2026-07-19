@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Edit2, Plus, Users } from 'lucide-react';
 import { api } from '../../../services/api';
+import { qkRoot } from '../../../services/queryKeys';
 import { useToast } from '../../../components/ui/useToast';
 import { SearchInput } from '../../../components/ui/SearchInput';
 import { DataTable, type DataTableColumn } from '../../../components/ui/DataTable';
@@ -12,7 +14,6 @@ import modalStyles from '../../../components/ui/Modal.module.css';
 
 interface EstudiantesTabProps {
   grupo: Grupo;
-  onChanged: () => void;
 }
 
 const emptyForm = { nombre: '', apellido: '', telefono: '', fechaDeNacimiento: '', correo: '' };
@@ -28,8 +29,9 @@ function initialForm(editingStudent: Estudiante | null) {
   };
 }
 
-export function EstudiantesTab({ grupo, onChanged }: EstudiantesTabProps) {
+export function EstudiantesTab({ grupo }: EstudiantesTabProps) {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Estudiante | null>(null);
@@ -44,27 +46,36 @@ export function EstudiantesTab({ grupo, onChanged }: EstudiantesTabProps) {
   const filteredStudents =
     grupo.estudiantes?.filter((e) => `${e.nombre} ${e.apellido}`.toLowerCase().includes(search.toLowerCase())) || [];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.nombre.trim()) return;
-
-    try {
+  const guardar = useMutation({
+    mutationFn: async () => {
       if (editingStudent) {
         await api.editarEstudiante(editingStudent.id, form);
-      } else {
-        const created = await api.crearEstudiante(form);
-        await api.editarGrupo(grupo.id, {
-          nombre: grupo.nombre,
-          profesorIds: grupo.profesorIds || [],
-          estudianteIds: [...(grupo.estudianteIds || []), created.id],
-        });
+        return;
       }
-      showToast(editingStudent ? 'Estudiante actualizado correctamente' : 'Estudiante agregado correctamente');
+      const created = await api.crearEstudiante(form);
+      await api.editarGrupo(grupo.id, {
+        nombre: grupo.nombre,
+        profesorIds: grupo.profesorIds || [],
+        estudianteIds: [...(grupo.estudianteIds || []), created.id],
+      });
+    },
+    onSuccess: async () => {
+      const wasEditing = Boolean(editingStudent);
       setIsModalOpen(false);
-      onChanged();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al guardar el estudiante', 'error');
-    }
+      // Invalidar ['grupos'] alcanza también el detalle de este grupo.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
+      ]);
+      showToast(wasEditing ? 'Estudiante actualizado correctamente' : 'Estudiante agregado correctamente');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al guardar el estudiante', 'error'),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.nombre.trim()) return;
+    guardar.mutate();
   };
 
   const columns: DataTableColumn<Estudiante>[] = [
