@@ -27,7 +27,11 @@ export function GruposTab() {
   const eliminar = useMutation({
     mutationFn: (grupoId: string) => api.eliminarGrupo(grupoId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: qkRoot.grupos });
+      // Borrar un grupo deja a sus estudiantes sin grupoId/nombreGrupo.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
+      ]);
       showToast('Grupo eliminado correctamente');
     },
     onError: (err) => showToast(err instanceof Error ? err.message : 'Error al eliminar el grupo', 'error'),

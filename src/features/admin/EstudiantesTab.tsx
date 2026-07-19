@@ -87,7 +87,11 @@ export function EstudiantesTab() {
   const toggleActivo = useMutation({
     mutationFn: ({ id, activo }: { id: string; activo: boolean }) => api.cambiarEstadoUsuario(id, activo),
     onSuccess: async (_data, { activo }) => {
-      await queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes });
+      // El grupo muestra a sus estudiantes, así que también queda desactualizado.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+      ]);
       showToast(activo ? 'Estudiante reactivado correctamente' : 'Estudiante eliminado correctamente');
     },
     onError: (err) => showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del estudiante', 'error'),

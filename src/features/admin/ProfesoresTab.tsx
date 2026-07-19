@@ -57,7 +57,11 @@ export function ProfesoresTab() {
   const toggleActivo = useMutation({
     mutationFn: ({ id, activo }: { id: string; activo: boolean }) => api.cambiarEstadoUsuario(id, activo),
     onSuccess: async (_data, { activo }) => {
-      await queryClient.invalidateQueries({ queryKey: qkRoot.profesores });
+      // Los grupos listan a sus profesores asignados.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.profesores }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+      ]);
       showToast(activo ? 'Profesor reactivado correctamente' : 'Profesor eliminado correctamente');
     },
     onError: (err) => showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del profesor', 'error'),
