@@ -87,9 +87,9 @@ export function AsistenciaTab({ grupo, onSubmitted }: AsistenciaTabProps) {
       </div>
 
       {hasStudents && (
-        <button onClick={handleSubmit} className="btn btn-success" style={{ width: '100%', padding: '1rem' }}>
+        <button onClick={handleSubmit} className="btn btn-success" style={{ width: '100%', padding: '1rem' }} disabled={registrar.isPending}>
           <Save size={18} />
-          <span>Guardar Lista de Asistencia</span>
+          <span>{registrar.isPending ? 'Guardando...' : 'Guardar Lista de Asistencia'}</span>
         </button>
       )}
     </div>

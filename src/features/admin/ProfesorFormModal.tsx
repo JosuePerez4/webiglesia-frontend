@@ -33,12 +33,14 @@ function initialForm(editingProfesor: Profesor | null): ProfesorFormValues {
 interface ProfesorFormModalProps {
   open: boolean;
   editingProfesor: Profesor | null;
+  /** Deshabilita el formulario mientras el guardado está en vuelo. */
+  submitting?: boolean;
   onClose: () => void;
   onSubmit: (values: ProfesorFormValues) => Promise<void>;
 }
 
 /** Render with a `key` that changes on every open so the form state resets fresh instead of syncing via effect. */
-export function ProfesorFormModal({ open, editingProfesor, onClose, onSubmit }: ProfesorFormModalProps) {
+export function ProfesorFormModal({ open, editingProfesor, submitting = false, onClose, onSubmit }: ProfesorFormModalProps) {
   const [form, setForm] = useState<ProfesorFormValues>(() => initialForm(editingProfesor));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,11 +79,11 @@ export function ProfesorFormModal({ open, editingProfesor, onClose, onSubmit }: 
         </div>
 
         <div className={modalStyles.footer}>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
             Cancelar
           </button>
-          <button type="submit" className="btn btn-primary">
-            Guardar Profesor
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? 'Guardando...' : 'Guardar Profesor'}
           </button>
         </div>
       </form>

@@ -169,6 +169,7 @@ export function EstudiantesTab() {
         open={isModalOpen}
         editingEstudiante={editingEstudiante}
         grupos={grupos}
+        submitting={guardar.isPending}
         onClose={() => setIsModalOpen(false)}
         onSubmit={async (values) => { await guardar.mutateAsync(values).catch(() => {}); }}
       />
@@ -182,6 +183,7 @@ export function EstudiantesTab() {
             : `¿Deseas reactivar la cuenta de "${estudianteToToggle?.nombre} ${estudianteToToggle?.apellido}"? Podrá volver a iniciar sesión.`
         }
         confirmLabel={estudianteToToggle?.activo ? 'Eliminar' : 'Reactivar'}
+        confirming={toggleActivo.isPending}
         danger={estudianteToToggle?.activo ?? true}
         onConfirm={() => {
           if (estudianteToToggle) toggleActivo.mutate({ id: estudianteToToggle.id, activo: !estudianteToToggle.activo });

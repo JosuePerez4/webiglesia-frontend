@@ -149,11 +149,11 @@ export function EstudiantesTab({ grupo }: EstudiantesTabProps) {
           </div>
 
           <div className={modalStyles.footer}>
-            <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
+            <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)} disabled={guardar.isPending}>
               Cancelar
             </button>
-            <button type="submit" className="btn btn-primary">
-              {editingStudent ? 'Actualizar' : 'Agregar'}
+            <button type="submit" className="btn btn-primary" disabled={guardar.isPending}>
+              {guardar.isPending ? 'Guardando...' : editingStudent ? 'Actualizar' : 'Agregar'}
             </button>
           </div>
         </form>

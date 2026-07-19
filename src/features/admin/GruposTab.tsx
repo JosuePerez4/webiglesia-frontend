@@ -92,6 +92,7 @@ export function GruposTab() {
         title="Eliminar Grupo"
         description={`¿Estás seguro de que deseas eliminar el grupo "${grupoToDelete?.nombre}"? Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
+        confirming={eliminar.isPending}
         onConfirm={() => {
           if (grupoToDelete) eliminar.mutate(grupoToDelete.id);
         }}

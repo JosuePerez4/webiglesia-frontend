@@ -130,6 +130,7 @@ export function ProfesoresTab() {
         key={modalKey}
         open={isModalOpen}
         editingProfesor={editingProfesor}
+        submitting={guardar.isPending}
         onClose={() => setIsModalOpen(false)}
         onSubmit={async (values) => { await guardar.mutateAsync(values).catch(() => {}); }}
       />
@@ -143,6 +144,7 @@ export function ProfesoresTab() {
             : `¿Deseas reactivar la cuenta de "${profesorToToggle?.nombre} ${profesorToToggle?.apellido}"? Podrá volver a iniciar sesión.`
         }
         confirmLabel={profesorToToggle?.activo ? 'Eliminar' : 'Reactivar'}
+        confirming={toggleActivo.isPending}
         danger={profesorToToggle?.activo ?? true}
         onConfirm={() => {
           if (profesorToToggle) toggleActivo.mutate({ id: profesorToToggle.id, activo: !profesorToToggle.activo });

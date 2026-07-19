@@ -37,12 +37,14 @@ interface EstudianteFormModalProps {
   open: boolean;
   editingEstudiante: Estudiante | null;
   grupos: Grupo[];
+  /** Deshabilita el formulario mientras el guardado está en vuelo. */
+  submitting?: boolean;
   onClose: () => void;
   onSubmit: (values: EstudianteFormValues) => Promise<void>;
 }
 
 /** Render with a `key` that changes on every open so the form state resets fresh instead of syncing via effect. */
-export function EstudianteFormModal({ open, editingEstudiante, grupos, onClose, onSubmit }: EstudianteFormModalProps) {
+export function EstudianteFormModal({ open, editingEstudiante, grupos, submitting = false, onClose, onSubmit }: EstudianteFormModalProps) {
   const [form, setForm] = useState<EstudianteFormValues>(() => initialForm(editingEstudiante));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,11 +94,11 @@ export function EstudianteFormModal({ open, editingEstudiante, grupos, onClose, 
         </div>
 
         <div className={modalStyles.footer}>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
             Cancelar
           </button>
-          <button type="submit" className="btn btn-primary">
-            Guardar Estudiante
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? 'Guardando...' : 'Guardar Estudiante'}
           </button>
         </div>
       </form>
