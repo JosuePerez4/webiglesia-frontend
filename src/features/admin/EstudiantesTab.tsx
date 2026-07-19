@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Edit2, Plus, RotateCcw, Trash2, Users } from 'lucide-react';
 import { api } from '../../services/api';
 import { qkRoot } from '../../services/queryKeys';
@@ -44,8 +44,8 @@ export function EstudiantesTab() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (values: EstudianteFormValues) => {
-    try {
+  const guardar = useMutation({
+    mutationFn: async (values: EstudianteFormValues) => {
       const { grupoId, ...personData } = values;
 
       let estudianteId: string;
@@ -71,31 +71,28 @@ export function EstudiantesTab() {
           }
         }
       }
-
-      showToast(editingEstudiante ? 'Estudiante actualizado correctamente' : 'Estudiante creado correctamente');
+    },
+    onSuccess: async () => {
+      const wasEditing = Boolean(editingEstudiante);
       setIsModalOpen(false);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
         queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
       ]);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al guardar el estudiante', 'error');
-    }
-  };
+      showToast(wasEditing ? 'Estudiante actualizado correctamente' : 'Estudiante creado correctamente');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al guardar el estudiante', 'error'),
+  });
 
-  const handleToggleActivo = async () => {
-    if (!estudianteToToggle) return;
-    const nuevoEstado = !estudianteToToggle.activo;
-    try {
-      await api.cambiarEstadoUsuario(estudianteToToggle.id, nuevoEstado);
-      showToast(nuevoEstado ? 'Estudiante reactivado correctamente' : 'Estudiante eliminado correctamente');
+  const toggleActivo = useMutation({
+    mutationFn: ({ id, activo }: { id: string; activo: boolean }) => api.cambiarEstadoUsuario(id, activo),
+    onSuccess: async (_data, { activo }) => {
       await queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes });
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del estudiante', 'error');
-    } finally {
-      setEstudianteToToggle(null);
-    }
-  };
+      showToast(activo ? 'Estudiante reactivado correctamente' : 'Estudiante eliminado correctamente');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del estudiante', 'error'),
+    onSettled: () => setEstudianteToToggle(null),
+  });
 
   const columns: DataTableColumn<Estudiante>[] = [
     {
@@ -169,7 +166,7 @@ export function EstudiantesTab() {
         editingEstudiante={editingEstudiante}
         grupos={grupos}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
+        onSubmit={async (values) => { await guardar.mutateAsync(values).catch(() => {}); }}
       />
 
       <ConfirmDialog
@@ -182,7 +179,9 @@ export function EstudiantesTab() {
         }
         confirmLabel={estudianteToToggle?.activo ? 'Eliminar' : 'Reactivar'}
         danger={estudianteToToggle?.activo ?? true}
-        onConfirm={handleToggleActivo}
+        onConfirm={() => {
+          if (estudianteToToggle) toggleActivo.mutate({ id: estudianteToToggle.id, activo: !estudianteToToggle.activo });
+        }}
         onCancel={() => setEstudianteToToggle(null)}
       />
     </div>

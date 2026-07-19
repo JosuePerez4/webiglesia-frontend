@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Save } from 'lucide-react';
 import { api } from '../../services/api';
+import { qkRoot } from '../../services/queryKeys';
 import { useAuth } from '../../context/useAuth';
 import { useProfesores } from '../../hooks/useProfesores';
 import { useEstudiantes } from '../../hooks/useEstudiantes';
@@ -25,7 +27,7 @@ export function GrupoEditScreen() {
   const [profesorIds, setProfesorIds] = useState<string[]>([]);
   const [estudianteIds, setEstudianteIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(isEditing);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!id) return;
@@ -51,26 +53,29 @@ export function GrupoEditScreen() {
     };
   }, [id, showToast]);
 
-  const handleSave = async () => {
+  const guardar = useMutation({
+    mutationFn: () => {
+      const payload = { nombre, profesorIds, estudianteIds, forzarCambioGrupo: true };
+      return isEditing && id ? api.editarGrupo(id, payload) : api.crearGrupo(payload);
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.profesores }),
+      ]);
+      showToast(isEditing ? 'Grupo actualizado correctamente' : 'Grupo creado correctamente');
+      navigate('/admin/grupos');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al guardar el grupo', 'error'),
+  });
+
+  const handleSave = () => {
     if (!nombre.trim()) {
       showToast('El nombre del grupo es obligatorio', 'error');
       return;
     }
-    setSaving(true);
-    try {
-      if (isEditing && id) {
-        await api.editarGrupo(id, { nombre, profesorIds, estudianteIds, forzarCambioGrupo: true });
-        showToast('Grupo actualizado correctamente');
-      } else {
-        await api.crearGrupo({ nombre, profesorIds, estudianteIds, forzarCambioGrupo: true });
-        showToast('Grupo creado correctamente');
-      }
-      navigate('/admin/grupos');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al guardar el grupo', 'error');
-    } finally {
-      setSaving(false);
-    }
+    guardar.mutate();
   };
 
   const profesorPeople = profesores.map((p) => ({ id: p.id, nombre: p.nombre, apellido: p.apellido, meta: p.correo }));
@@ -135,8 +140,8 @@ export function GrupoEditScreen() {
               <button className="btn btn-secondary" onClick={() => navigate('/admin/grupos')}>
                 Cancelar
               </button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                <Save size={18} /> {saving ? 'Guardando...' : 'Guardar Grupo'}
+              <button className="btn btn-primary" onClick={handleSave} disabled={guardar.isPending}>
+                <Save size={18} /> {guardar.isPending ? 'Guardando...' : 'Guardar Grupo'}
               </button>
             </div>
           </>

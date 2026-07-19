@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Edit2, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
 import { qkRoot } from '../../services/queryKeys';
@@ -24,18 +24,15 @@ export function GruposTab() {
 
   const filtered = grupos.filter((g) => g.nombre.toLowerCase().includes(search.toLowerCase()));
 
-  const handleDelete = async () => {
-    if (!grupoToDelete) return;
-    try {
-      await api.eliminarGrupo(grupoToDelete.id);
-      showToast('Grupo eliminado correctamente');
+  const eliminar = useMutation({
+    mutationFn: (grupoId: string) => api.eliminarGrupo(grupoId),
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: qkRoot.grupos });
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al eliminar el grupo', 'error');
-    } finally {
-      setGrupoToDelete(null);
-    }
-  };
+      showToast('Grupo eliminado correctamente');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al eliminar el grupo', 'error'),
+    onSettled: () => setGrupoToDelete(null),
+  });
 
   const columns: DataTableColumn<Grupo>[] = [
     {
@@ -91,7 +88,9 @@ export function GruposTab() {
         title="Eliminar Grupo"
         description={`¿Estás seguro de que deseas eliminar el grupo "${grupoToDelete?.nombre}"? Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
-        onConfirm={handleDelete}
+        onConfirm={() => {
+          if (grupoToDelete) eliminar.mutate(grupoToDelete.id);
+        }}
         onCancel={() => setGrupoToDelete(null)}
       />
     </div>
