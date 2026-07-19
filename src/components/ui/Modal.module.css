@@ -1,21 +1,25 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background-color: rgba(15, 23, 42, 0.5);
   z-index: 1000;
-  padding: 1rem;
-  overflow-y: auto;
 }
 
 .overlay[data-state='open'] {
-  animation: fadeIn var(--transition-fast) forwards;
+  animation: overlayShow var(--transition-fast);
+}
+
+.overlay[data-state='closed'] {
+  animation: overlayHide var(--transition-fast);
 }
 
 .content {
-  width: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  width: calc(100% - 2rem);
   max-width: 520px;
   border-radius: var(--radius-lg);
   padding: 2rem;
@@ -24,6 +28,34 @@
   border: 1px solid var(--border-color);
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
+}
+
+.content[data-state='open'] {
+  animation: contentShow var(--transition-fast);
+}
+
+.content[data-state='closed'] {
+  animation: contentHide var(--transition-fast);
+}
+
+@keyframes overlayShow {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes overlayHide {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes contentShow {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes contentHide {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
 }
 
 .wide {

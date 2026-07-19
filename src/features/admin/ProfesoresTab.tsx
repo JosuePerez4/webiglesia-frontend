@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Edit2, GraduationCap, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
+import { qkRoot } from '../../services/queryKeys';
 import { useToast } from '../../components/ui/useToast';
 import { useProfesores } from '../../hooks/useProfesores';
 import { SearchInput } from '../../components/ui/SearchInput';
@@ -13,16 +14,16 @@ import { ActivoFilter } from '../../components/ui/ActivoFilter';
 import { activoFilterToBoolean, type ActivoFilterValue } from '../../components/ui/activoFilterValue';
 import { ProfesorFormModal, type ProfesorFormValues } from './ProfesorFormModal';
 import type { Profesor } from '../../types';
-import type { AdminOutletContext } from './AdminLayout';
 import dataTableStyles from '../../components/ui/DataTable.module.css';
+import styles from './ProfesoresTab.module.css';
 
 export function ProfesoresTab() {
-  const { refetchProfesores: refetchProfesorCount } = useOutletContext<AdminOutletContext>();
+  const queryClient = useQueryClient();
   const { showToast } = useToast();
 
   const [search, setSearch] = useState('');
   const [activoFilter, setActivoFilter] = useState<ActivoFilterValue>('all');
-  const { profesores, refetch: refetchProfesores } = useProfesores(activoFilterToBoolean(activoFilter));
+  const { profesores } = useProfesores(activoFilterToBoolean(activoFilter));
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProfesor, setEditingProfesor] = useState<Profesor | null>(null);
@@ -41,37 +42,31 @@ export function ProfesoresTab() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (values: ProfesorFormValues) => {
-    try {
-      if (editingProfesor) {
-        await api.editarProfesor(editingProfesor.id, values);
-        showToast('Profesor actualizado correctamente');
-      } else {
-        await api.crearProfesor(values);
-        showToast('Profesor creado correctamente');
-      }
+  const guardar = useMutation({
+    mutationFn: (values: ProfesorFormValues) =>
+      editingProfesor ? api.editarProfesor(editingProfesor.id, values) : api.crearProfesor(values),
+    onSuccess: async () => {
+      const wasEditing = Boolean(editingProfesor);
       setIsModalOpen(false);
-      refetchProfesores();
-      refetchProfesorCount();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al guardar el profesor', 'error');
-    }
-  };
+      await queryClient.invalidateQueries({ queryKey: qkRoot.profesores });
+      showToast(wasEditing ? 'Profesor actualizado correctamente' : 'Profesor creado correctamente');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al guardar el profesor', 'error'),
+  });
 
-  const handleToggleActivo = async () => {
-    if (!profesorToToggle) return;
-    const nuevoEstado = !profesorToToggle.activo;
-    try {
-      await api.cambiarEstadoUsuario(profesorToToggle.id, nuevoEstado);
-      showToast(nuevoEstado ? 'Profesor reactivado correctamente' : 'Profesor eliminado correctamente');
-      refetchProfesores();
-      refetchProfesorCount();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del profesor', 'error');
-    } finally {
-      setProfesorToToggle(null);
-    }
-  };
+  const toggleActivo = useMutation({
+    mutationFn: ({ id, activo }: { id: string; activo: boolean }) => api.cambiarEstadoUsuario(id, activo),
+    onSuccess: async (_data, { activo }) => {
+      // Los grupos listan a sus profesores asignados.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.profesores }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+      ]);
+      showToast(activo ? 'Profesor reactivado correctamente' : 'Profesor eliminado correctamente');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del profesor', 'error'),
+    onSettled: () => setProfesorToToggle(null),
+  });
 
   const columns: DataTableColumn<Profesor>[] = [
     {
@@ -97,8 +92,8 @@ export function ProfesoresTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+      <div className={styles.toolbar}>
+        <div className={styles.filters}>
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar profesores..." />
           <ActivoFilter value={activoFilter} onChange={setActivoFilter} />
         </div>
@@ -135,8 +130,9 @@ export function ProfesoresTab() {
         key={modalKey}
         open={isModalOpen}
         editingProfesor={editingProfesor}
+        submitting={guardar.isPending}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
+        onSubmit={async (values) => { await guardar.mutateAsync(values).catch(() => {}); }}
       />
 
       <ConfirmDialog
@@ -148,8 +144,11 @@ export function ProfesoresTab() {
             : `¿Deseas reactivar la cuenta de "${profesorToToggle?.nombre} ${profesorToToggle?.apellido}"? Podrá volver a iniciar sesión.`
         }
         confirmLabel={profesorToToggle?.activo ? 'Eliminar' : 'Reactivar'}
+        confirming={toggleActivo.isPending}
         danger={profesorToToggle?.activo ?? true}
-        onConfirm={handleToggleActivo}
+        onConfirm={() => {
+          if (profesorToToggle) toggleActivo.mutate({ id: profesorToToggle.id, activo: !profesorToToggle.activo });
+        }}
         onCancel={() => setProfesorToToggle(null)}
       />
     </div>

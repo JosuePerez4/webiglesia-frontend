@@ -1,26 +1,14 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { BookOpen, GraduationCap, Users } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
-import { useGrupos } from '../../hooks/useGrupos';
-import { useProfesores } from '../../hooks/useProfesores';
-import { useEstudiantes } from '../../hooks/useEstudiantes';
+import { api } from '../../services/api';
+import { qk } from '../../services/queryKeys';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { StatCard } from '../../components/ui/StatCard';
 import { Tabs } from '../../components/ui/Tabs';
-import type { Estudiante, Grupo, Profesor } from '../../types';
 import styles from './AdminLayout.module.css';
-
-export interface AdminOutletContext {
-  grupos: Grupo[];
-  loadingGrupos: boolean;
-  refetchGrupos: () => void;
-  profesores: Profesor[];
-  loadingProfesores: boolean;
-  refetchProfesores: () => void;
-  estudiantes: Estudiante[];
-  loadingEstudiantes: boolean;
-  refetchEstudiantes: () => void;
-}
+import statStyles from '../../components/ui/StatCard.module.css';
 
 const TAB_ITEMS = [
   { value: 'grupos', label: (<><BookOpen size={16} /> Grupos</>) },
@@ -28,30 +16,26 @@ const TAB_ITEMS = [
   { value: 'estudiantes', label: (<><Users size={16} /> Estudiantes</>) },
 ];
 
+/**
+ * Las tarjetas solo necesitan el conteo: `select` deriva la longitud sobre la
+ * misma entrada de caché que consumen las pestañas, y el layout se vuelve a
+ * renderizar solo cuando cambia el número.
+ */
+function useCount<T>(queryKey: readonly unknown[], queryFn: () => Promise<T[]>) {
+  const { data } = useQuery({ queryKey, queryFn, select: (rows: T[]) => rows.length });
+  return data ?? 0;
+}
+
 export function AdminLayout() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 'all' explícito: el backend ahora filtra solo activos por defecto, y estos contadores
-  // del panel deben reflejar el total real registrado en el sistema.
-  const { grupos, loading: loadingGrupos, refetch: refetchGrupos } = useGrupos();
-  const { profesores, loading: loadingProfesores, refetch: refetchProfesores } = useProfesores('all');
-  const { estudiantes, loading: loadingEstudiantes, refetch: refetchEstudiantes } = useEstudiantes(undefined, 'all');
+  const totalGrupos = useCount(qk.grupos(), () => api.getGrupos());
+  const totalProfesores = useCount(qk.profesores('all'), () => api.getProfesores('all'));
+  const totalEstudiantes = useCount(qk.estudiantes('all'), () => api.getEstudiantes(undefined, 'all'));
 
   const activeTab = location.pathname.split('/')[2] ?? 'grupos';
-
-  const context: AdminOutletContext = {
-    grupos,
-    loadingGrupos,
-    refetchGrupos,
-    profesores,
-    loadingProfesores,
-    refetchProfesores,
-    estudiantes,
-    loadingEstudiantes,
-    refetchEstudiantes,
-  };
 
   return (
     <>
@@ -66,15 +50,15 @@ export function AdminLayout() {
 
       <div className="container animate-fade-in" style={{ paddingBottom: '4rem' }}>
         <div className={styles.statCards}>
-          <StatCard icon={<BookOpen size={22} color="white" />} iconBg="var(--c-blue)" value={grupos.length} label="Grupos/Cursos" />
-          <StatCard icon={<GraduationCap size={22} color="white" />} iconBg="var(--c-purple)" value={profesores.length} label="Profesores" />
-          <StatCard icon={<Users size={22} color="white" />} iconBg="var(--c-gold)" value={estudiantes.length} label="Estudiantes" />
+          <StatCard icon={<BookOpen size={22} color="white" />} colorClass={statStyles.iconBlue} value={totalGrupos} label="Grupos/Cursos" />
+          <StatCard icon={<GraduationCap size={22} color="white" />} colorClass={statStyles.iconPurple} value={totalProfesores} label="Profesores" />
+          <StatCard icon={<Users size={22} color="white" />} colorClass={statStyles.iconGold} value={totalEstudiantes} label="Estudiantes" />
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => navigate(`/admin/${v}`)} items={TAB_ITEMS} />
 
         <div style={{ marginTop: '1.5rem' }}>
-          <Outlet context={context} />
+          <Outlet />
         </div>
       </div>
     </>

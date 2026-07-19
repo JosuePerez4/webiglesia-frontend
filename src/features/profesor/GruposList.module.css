@@ -1,0 +1,59 @@
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  color: var(--c-blue);
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+}
+
+.cardIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: var(--c-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.cardTitle {
+  margin-top: 1rem;
+  color: var(--c-blue);
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  align-items: center;
+}
+
+.cardAction {
+  margin-top: 1.25rem;
+}
+
+.cardAction .btn {
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .cardIcon {
+    width: 48px;
+    height: 48px;
+  }
+}

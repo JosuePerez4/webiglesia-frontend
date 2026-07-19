@@ -1,17 +1,21 @@
 import { useState } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Edit2, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
+import { qkRoot } from '../../services/queryKeys';
 import { useToast } from '../../components/ui/useToast';
+import { useGrupos } from '../../hooks/useGrupos';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import type { Grupo } from '../../types';
-import type { AdminOutletContext } from './AdminLayout';
+import styles from './GruposTab.module.css';
 
 export function GruposTab() {
-  const { grupos, refetchGrupos } = useOutletContext<AdminOutletContext>();
+  const { grupos } = useGrupos();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -20,18 +24,19 @@ export function GruposTab() {
 
   const filtered = grupos.filter((g) => g.nombre.toLowerCase().includes(search.toLowerCase()));
 
-  const handleDelete = async () => {
-    if (!grupoToDelete) return;
-    try {
-      await api.eliminarGrupo(grupoToDelete.id);
+  const eliminar = useMutation({
+    mutationFn: (grupoId: string) => api.eliminarGrupo(grupoId),
+    onSuccess: async () => {
+      // Borrar un grupo deja a sus estudiantes sin grupoId/nombreGrupo.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
+      ]);
       showToast('Grupo eliminado correctamente');
-      refetchGrupos();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al eliminar el grupo', 'error');
-    } finally {
-      setGrupoToDelete(null);
-    }
-  };
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al eliminar el grupo', 'error'),
+    onSettled: () => setGrupoToDelete(null),
+  });
 
   const columns: DataTableColumn<Grupo>[] = [
     {
@@ -45,7 +50,7 @@ export function GruposTab() {
         g.profesores && g.profesores.length > 0 ? (
           g.profesores.map((p) => `${p.nombre} ${p.apellido}`).join(', ')
         ) : (
-          <span style={{ color: 'var(--text-muted)' }}>Sin asignar</span>
+          <span className={styles.mutedText}>Sin asignar</span>
         ),
     },
     {
@@ -56,7 +61,7 @@ export function GruposTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+      <div className={styles.toolbar}>
         <SearchInput value={search} onChange={setSearch} placeholder="Buscar grupos..." />
         <button className="btn btn-primary" onClick={() => navigate('/admin/grupos/nuevo')}>
           <Plus size={18} /> Crear Grupo
@@ -87,7 +92,10 @@ export function GruposTab() {
         title="Eliminar Grupo"
         description={`¿Estás seguro de que deseas eliminar el grupo "${grupoToDelete?.nombre}"? Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
-        onConfirm={handleDelete}
+        confirming={eliminar.isPending}
+        onConfirm={() => {
+          if (grupoToDelete) eliminar.mutate(grupoToDelete.id);
+        }}
         onCancel={() => setGrupoToDelete(null)}
       />
     </div>

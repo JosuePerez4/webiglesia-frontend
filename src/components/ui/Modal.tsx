@@ -15,21 +15,20 @@ export function Modal({ open, onOpenChange, title, children, wide }: ModalProps)
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className={styles.overlay}>
-          <Dialog.Content className={`${styles.content}${wide ? ` ${styles.wide}` : ''}`}>
-            <div className={styles.header}>
-              <Dialog.Title asChild>
-                <h2>{title}</h2>
-              </Dialog.Title>
-              <Dialog.Close asChild>
-                <button className={styles.closeBtn} aria-label="Cerrar">
-                  <X size={20} />
-                </button>
-              </Dialog.Close>
-            </div>
-            {children}
-          </Dialog.Content>
-        </Dialog.Overlay>
+        <Dialog.Overlay className={styles.overlay} />
+        <Dialog.Content className={`${styles.content}${wide ? ` ${styles.wide}` : ''}`}>
+          <div className={styles.header}>
+            <Dialog.Title asChild>
+              <h2>{title}</h2>
+            </Dialog.Title>
+            <Dialog.Close asChild>
+              <button className={styles.closeBtn} aria-label="Cerrar">
+                <X size={20} />
+              </button>
+            </Dialog.Close>
+          </div>
+          {children}
+        </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
   );

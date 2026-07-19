@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Edit2, Plus, RotateCcw, Trash2, Users } from 'lucide-react';
 import { api } from '../../services/api';
+import { qkRoot } from '../../services/queryKeys';
 import { useToast } from '../../components/ui/useToast';
 import { useEstudiantes } from '../../hooks/useEstudiantes';
+import { useGrupos } from '../../hooks/useGrupos';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
 import { Avatar } from '../../components/ui/Avatar';
@@ -13,16 +15,17 @@ import { ActivoFilter } from '../../components/ui/ActivoFilter';
 import { activoFilterToBoolean, type ActivoFilterValue } from '../../components/ui/activoFilterValue';
 import { EstudianteFormModal, type EstudianteFormValues } from './EstudianteFormModal';
 import type { Estudiante } from '../../types';
-import type { AdminOutletContext } from './AdminLayout';
 import dataTableStyles from '../../components/ui/DataTable.module.css';
+import styles from './EstudiantesTab.module.css';
 
 export function EstudiantesTab() {
-  const { refetchEstudiantes: refetchEstudianteCount, grupos, refetchGrupos } = useOutletContext<AdminOutletContext>();
+  const queryClient = useQueryClient();
   const { showToast } = useToast();
 
   const [search, setSearch] = useState('');
   const [activoFilter, setActivoFilter] = useState<ActivoFilterValue>('all');
-  const { estudiantes, refetch: refetchEstudiantes } = useEstudiantes(undefined, activoFilterToBoolean(activoFilter));
+  const { estudiantes } = useEstudiantes(undefined, activoFilterToBoolean(activoFilter));
+  const { grupos } = useGrupos();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEstudiante, setEditingEstudiante] = useState<Estudiante | null>(null);
@@ -41,8 +44,8 @@ export function EstudiantesTab() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (values: EstudianteFormValues) => {
-    try {
+  const guardar = useMutation({
+    mutationFn: async (values: EstudianteFormValues) => {
       const { grupoId, ...personData } = values;
 
       let estudianteId: string;
@@ -68,31 +71,32 @@ export function EstudiantesTab() {
           }
         }
       }
-
-      showToast(editingEstudiante ? 'Estudiante actualizado correctamente' : 'Estudiante creado correctamente');
+    },
+    onSuccess: async () => {
+      const wasEditing = Boolean(editingEstudiante);
       setIsModalOpen(false);
-      refetchEstudiantes();
-      refetchEstudianteCount();
-      refetchGrupos();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al guardar el estudiante', 'error');
-    }
-  };
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+      ]);
+      showToast(wasEditing ? 'Estudiante actualizado correctamente' : 'Estudiante creado correctamente');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al guardar el estudiante', 'error'),
+  });
 
-  const handleToggleActivo = async () => {
-    if (!estudianteToToggle) return;
-    const nuevoEstado = !estudianteToToggle.activo;
-    try {
-      await api.cambiarEstadoUsuario(estudianteToToggle.id, nuevoEstado);
-      showToast(nuevoEstado ? 'Estudiante reactivado correctamente' : 'Estudiante eliminado correctamente');
-      refetchEstudiantes();
-      refetchEstudianteCount();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del estudiante', 'error');
-    } finally {
-      setEstudianteToToggle(null);
-    }
-  };
+  const toggleActivo = useMutation({
+    mutationFn: ({ id, activo }: { id: string; activo: boolean }) => api.cambiarEstadoUsuario(id, activo),
+    onSuccess: async (_data, { activo }) => {
+      // El grupo muestra a sus estudiantes, así que también queda desactualizado.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qkRoot.estudiantes }),
+        queryClient.invalidateQueries({ queryKey: qkRoot.grupos }),
+      ]);
+      showToast(activo ? 'Estudiante reactivado correctamente' : 'Estudiante eliminado correctamente');
+    },
+    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del estudiante', 'error'),
+    onSettled: () => setEstudianteToToggle(null),
+  });
 
   const columns: DataTableColumn<Estudiante>[] = [
     {
@@ -126,8 +130,8 @@ export function EstudiantesTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+      <div className={styles.toolbar}>
+        <div className={styles.filters}>
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar estudiantes..." />
           <ActivoFilter value={activoFilter} onChange={setActivoFilter} />
         </div>
@@ -165,8 +169,9 @@ export function EstudiantesTab() {
         open={isModalOpen}
         editingEstudiante={editingEstudiante}
         grupos={grupos}
+        submitting={guardar.isPending}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
+        onSubmit={async (values) => { await guardar.mutateAsync(values).catch(() => {}); }}
       />
 
       <ConfirmDialog
@@ -178,8 +183,11 @@ export function EstudiantesTab() {
             : `¿Deseas reactivar la cuenta de "${estudianteToToggle?.nombre} ${estudianteToToggle?.apellido}"? Podrá volver a iniciar sesión.`
         }
         confirmLabel={estudianteToToggle?.activo ? 'Eliminar' : 'Reactivar'}
+        confirming={toggleActivo.isPending}
         danger={estudianteToToggle?.activo ?? true}
-        onConfirm={handleToggleActivo}
+        onConfirm={() => {
+          if (estudianteToToggle) toggleActivo.mutate({ id: estudianteToToggle.id, activo: !estudianteToToggle.activo });
+        }}
         onCancel={() => setEstudianteToToggle(null)}
       />
     </div>

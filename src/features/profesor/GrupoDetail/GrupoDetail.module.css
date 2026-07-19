@@ -1,0 +1,91 @@
+.backButton {
+  margin-bottom: 1.5rem;
+}
+
+.groupCard {
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 2rem;
+}
+
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nameTitle {
+  font-size: 2rem;
+  margin: 0;
+  color: var(--c-blue);
+}
+
+.nameInput {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nameEditBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: inline-flex;
+  padding: 0.35rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.nameEditBtn:hover {
+  background: var(--border-color);
+}
+
+.nameForm {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.nameFormBtn {
+  padding: 0.5rem 1rem;
+}
+
+.professorName {
+  color: var(--text-secondary);
+}
+
+.badges {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.loadingText {
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .nameTitle {
+    font-size: 1.5rem;
+  }
+
+  .groupCard {
+    padding: 1.25rem;
+  }
+
+  .badges {
+    flex-direction: column;
+  }
+
+  .nameForm {
+    flex-direction: column;
+  }
+}

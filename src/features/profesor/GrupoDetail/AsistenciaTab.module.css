@@ -8,10 +8,12 @@
   border: 1px solid var(--border-color);
   margin-bottom: 0.75rem;
   transition: all var(--transition-fast);
+  box-shadow: var(--shadow-xs);
 }
 
 .attendanceItem:hover {
-  border-color: var(--text-muted);
+  border-color: var(--c-blue-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .checkboxWrapper {
@@ -34,8 +36,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #cbd5e1;
-  transition: .4s;
+  background-color: var(--border-color);
+  transition: .3s;
   border-radius: 34px;
 }
 
@@ -47,12 +49,13 @@
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: .4s;
+  transition: .3s;
   border-radius: 50%;
+  box-shadow: var(--shadow-sm);
 }
 
 .checkboxWrapper input:checked + .checkboxSlider {
-  background-color: var(--success);
+  background-color: var(--c-teal);
 }
 
 .checkboxWrapper input:checked + .checkboxSlider:before {
