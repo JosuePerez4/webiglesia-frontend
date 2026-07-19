@@ -1,41 +1,36 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import type { Clase, Grupo } from '../types';
+import { qk } from '../services/queryKeys';
 
 export function useGrupoDetail(grupoId: string | undefined) {
-  const [grupo, setGrupo] = useState<Grupo | null>(null);
-  const [clases, setClases] = useState<Clase[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
+  const enabled = Boolean(grupoId);
 
-  useEffect(() => {
-    if (!grupoId) return;
-    let cancelled = false;
+  // Dos queries independientes en vez de un Promise.all: registrar asistencia
+  // invalida solo las clases y no vuelve a pedir el grupo entero.
+  const grupoQuery = useQuery({
+    queryKey: qk.grupo(grupoId ?? ''),
+    queryFn: () => api.getGrupo(grupoId!),
+    enabled,
+  });
 
-    Promise.all([api.getGrupo(grupoId), api.getClasesGrupo(grupoId)])
-      .then(([detail, hist]) => {
-        if (cancelled) return;
-        setGrupo(detail);
-        setClases(hist);
-        setError(null);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Error al cargar el grupo');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [grupoId, reloadToken]);
+  const clasesQuery = useQuery({
+    queryKey: qk.clasesGrupo(grupoId ?? ''),
+    queryFn: () => api.getClasesGrupo(grupoId!),
+    enabled,
+  });
 
   const refetch = useCallback(() => {
-    setLoading(true);
-    setReloadToken((t) => t + 1);
-  }, []);
+    return Promise.all([grupoQuery.refetch(), clasesQuery.refetch()]);
+  }, [grupoQuery, clasesQuery]);
 
-  return { grupo, clases, loading, error, refetch };
+  const error = grupoQuery.error ?? clasesQuery.error;
+
+  return {
+    grupo: grupoQuery.data ?? null,
+    clases: clasesQuery.data ?? [],
+    loading: grupoQuery.isLoading || clasesQuery.isLoading,
+    error: error ? (error instanceof Error ? error.message : 'Error al cargar el grupo') : null,
+    refetch,
+  };
 }
