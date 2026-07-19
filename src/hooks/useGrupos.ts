@@ -1,39 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import type { Grupo } from '../types';
+import { qk } from '../services/queryKeys';
 
 export function useGrupos() {
-  const [grupos, setGrupos] = useState<Grupo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
+  const { data, isPending, error, refetch } = useQuery({
+    queryKey: qk.grupos(),
+    queryFn: () => api.getGrupos(),
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    api
-      .getGrupos()
-      .then((data) => {
-        if (cancelled) return;
-        setGrupos(data);
-        setError(null);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Error al cargar grupos');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [reloadToken]);
-
-  const refetch = useCallback(() => {
-    setLoading(true);
-    setReloadToken((t) => t + 1);
-  }, []);
-
-  return { grupos, loading, error, refetch };
+  return {
+    grupos: data ?? [],
+    loading: isPending,
+    error: error ? (error instanceof Error ? error.message : 'Error al cargar grupos') : null,
+    refetch,
+  };
 }
