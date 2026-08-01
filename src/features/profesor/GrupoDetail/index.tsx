@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Calendar, CalendarCheck, Clock, Edit2, Save, Users, X } from 'lucide-react';
 import { api } from '../../../services/api';
@@ -8,9 +8,7 @@ import { useGrupoDetail } from '../../../hooks/useGrupoDetail';
 import { useToast } from '../../../components/ui/useToast';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs } from '../../../components/ui/Tabs';
-import { EstudiantesTab } from './EstudiantesTab';
-import { AsistenciaTab } from './AsistenciaTab';
-import { HistorialTab } from './HistorialTab';
+import type { GrupoDetailContext } from './grupoDetailContext';
 import styles from './GrupoDetail.module.css';
 
 const TAB_ITEMS = [
@@ -22,11 +20,14 @@ const TAB_ITEMS = [
 export function GrupoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
   const { grupo, clases, loading } = useGrupoDetail(id);
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState('estudiantes');
+  // /profesor/grupos/:id/tab -> ['', 'profesor', 'grupos', ':id', 'tab'], index 4.
+  const activeTab = location.pathname.split('/')[4] ?? 'estudiantes';
+
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameForm, setNameForm] = useState('');
 
@@ -102,12 +103,15 @@ export function GrupoDetail() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} items={TAB_ITEMS} variant="underline" />
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => navigate(`/profesor/grupos/${id}/${v}`)}
+          items={TAB_ITEMS}
+          variant="underline"
+        />
       </div>
 
-      {activeTab === 'estudiantes' && <EstudiantesTab grupo={grupo} />}
-      {activeTab === 'asistencia' && <AsistenciaTab grupo={grupo} onSubmitted={() => setActiveTab('historial')} />}
-      {activeTab === 'historial' && <HistorialTab grupo={grupo} clases={clases} />}
+      <Outlet context={{ grupo, clases } satisfies GrupoDetailContext} />
     </div>
   );
 }
