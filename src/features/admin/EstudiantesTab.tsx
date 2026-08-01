@@ -114,7 +114,7 @@ export function EstudiantesTab() {
     {
       header: 'Estado',
       badge: true,
-      render: (e) => (e.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="neutral">Inactivo</Badge>),
+      render: (e) => (e.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="red">Inactivo</Badge>),
     },
     {
       header: 'Grupo Asignado',
