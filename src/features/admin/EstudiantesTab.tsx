@@ -113,10 +113,12 @@ export function EstudiantesTab() {
     },
     {
       header: 'Estado',
-      render: (e) => (e.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="neutral">Inactivo</Badge>),
+      badge: true,
+      render: (e) => (e.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="red">Inactivo</Badge>),
     },
     {
       header: 'Grupo Asignado',
+      subtitle: true,
       render: (e) =>
         e.nombreGrupo ? (
           <Badge tone="purple">{e.nombreGrupo}</Badge>
@@ -129,7 +131,7 @@ export function EstudiantesTab() {
   ];
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className={styles.toolbar}>
         <div className={styles.filters}>
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar estudiantes..." />

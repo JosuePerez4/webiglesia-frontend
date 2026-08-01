@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/useAuth';
+import { useStaffDarkTheme } from '../../hooks/useStaffDarkTheme';
 import { homeForRole } from '../../routes/roleHome';
 import { Lock, User, Church, AlertCircle } from 'lucide-react';
 import styles from './Login.module.css';
 
 export function Login() {
+  useStaffDarkTheme();
   const { login } = useAuth();
   const navigate = useNavigate();
 

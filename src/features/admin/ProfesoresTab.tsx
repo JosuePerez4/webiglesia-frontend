@@ -83,7 +83,8 @@ export function ProfesoresTab() {
     },
     {
       header: 'Estado',
-      render: (p) => (p.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="neutral">Inactivo</Badge>),
+      badge: true,
+      render: (p) => (p.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="red">Inactivo</Badge>),
     },
     { header: 'Teléfono', render: (p) => p.telefono || '—' },
     { header: 'Correo Electrónico', render: (p) => p.correo || '—' },
@@ -91,7 +92,7 @@ export function ProfesoresTab() {
   ];
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className={styles.toolbar}>
         <div className={styles.filters}>
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar profesores..." />

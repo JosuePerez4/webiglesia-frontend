@@ -89,7 +89,8 @@ export function AdminsPanel() {
     },
     {
       header: 'Estado',
-      render: (a) => (a.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="neutral">Inactivo</Badge>),
+      badge: true,
+      render: (a) => (a.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="red">Inactivo</Badge>),
     },
     { header: 'Usuario', render: (a) => a.username },
     { header: 'Teléfono', render: (a) => a.telefono || '—' },
@@ -97,7 +98,7 @@ export function AdminsPanel() {
   ];
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className={styles.toolbar}>
         <div className={styles.filters}>
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar administradores..." />

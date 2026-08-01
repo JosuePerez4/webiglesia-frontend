@@ -20,10 +20,25 @@
   white-space: nowrap;
 }
 
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .table tbody tr {
   border-bottom: 1px solid var(--border-color);
   transition: background var(--transition-fast);
+  animation: rowIn var(--transition-normal) var(--ease-confident) backwards;
 }
+
+.table tbody tr:nth-child(1) { animation-delay: 0ms; }
+.table tbody tr:nth-child(2) { animation-delay: 25ms; }
+.table tbody tr:nth-child(3) { animation-delay: 50ms; }
+.table tbody tr:nth-child(4) { animation-delay: 75ms; }
+.table tbody tr:nth-child(5) { animation-delay: 100ms; }
+.table tbody tr:nth-child(6) { animation-delay: 125ms; }
+.table tbody tr:nth-child(7) { animation-delay: 150ms; }
+.table tbody tr:nth-child(n+8) { animation-delay: 175ms; }
 
 .table tbody tr:last-child {
   border-bottom: none;
@@ -78,8 +93,66 @@
 
 .cardHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.75rem;
+}
+
+.cardBadge {
+  flex-shrink: 0;
+}
+
+.cardSubtitle {
+  margin-top: -0.35rem;
+}
+
+.cardToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.cardToggle:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.chevron {
+  transition: transform var(--transition-fast);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* CSS-only accordion: 0fr->1fr on the grid track animates height without
+   measuring it in JS; the inner wrapper's overflow:hidden clips the content
+   while the track is collapsing/expanding. */
+.cardDetails {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-normal) var(--ease-confident);
+}
+
+.cardDetailsOpen {
+  grid-template-rows: 1fr;
+}
+
+.cardDetailsInner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .cardField {

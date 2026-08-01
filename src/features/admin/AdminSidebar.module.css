@@ -8,6 +8,60 @@
   gap: 0.25rem;
 }
 
+.overlay {
+  display: none;
+}
+
+.closeBtn {
+  display: none;
+}
+
+/* Off-canvas drawer below 720px — matches the breakpoint DataTable and the
+   layout shells already use for their own mobile fallback. */
+@media (max-width: 720px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1500;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal) var(--ease-confident);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1450;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .closeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .navItem,
+  .logoutBtn {
+    padding: 0.85rem 0.8rem;
+  }
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -43,6 +97,7 @@
 }
 
 .navItem {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -55,6 +110,19 @@
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
+.navItem::before {
+  content: '';
+  position: absolute;
+  left: -0.4rem;
+  top: 50%;
+  width: 3px;
+  height: 60%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transform: translateY(-50%) scaleY(0);
+  transition: transform var(--transition-normal) var(--ease-confident);
+}
+
 .navItem:hover {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.04);
@@ -63,6 +131,10 @@
 .navItemActive {
   color: var(--primary);
   background: rgba(110, 168, 224, 0.16);
+}
+
+.navItemActive::before {
+  transform: translateY(-50%) scaleY(1);
 }
 
 .spacer {

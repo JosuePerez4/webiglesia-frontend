@@ -11,7 +11,7 @@ export function GruposList() {
   const navigate = useNavigate();
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className={styles.pageHeader}>
         <h1 className={styles.title}>Mis Clases</h1>
         <p className={styles.subtitle}>Selecciona un curso para tomar asistencia o gestionar tus estudiantes.</p>

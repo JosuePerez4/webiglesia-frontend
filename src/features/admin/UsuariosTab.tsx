@@ -15,7 +15,7 @@ export function UsuariosTab() {
   const activeTab = location.pathname.split('/')[3] ?? 'admins';
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <h1 className={styles.title}>Usuarios</h1>
       <p className={styles.subtitle}>Administradores, profesores y estudiantes del sistema</p>
 

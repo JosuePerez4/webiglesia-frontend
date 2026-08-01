@@ -21,7 +21,7 @@ export function PerfilTab() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <h1 className={styles.title}>Mi Perfil</h1>
       <p className={styles.subtitle}>Tus datos como profesor en el sistema</p>
 
