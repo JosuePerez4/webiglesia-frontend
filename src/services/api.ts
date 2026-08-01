@@ -121,6 +121,9 @@ export const api = {
       body: JSON.stringify(profesor)
     }),
 
+  getProfesor: (id: string) =>
+    request<Profesor>(`/profesores/${id}`),
+
   getProfesores: (activo?: ActivoParam) => {
     const activoValue = activoQueryValue(activo);
     return request<Profesor[]>(`/profesores${activoValue !== undefined ? `?activo=${activoValue}` : ''}`);

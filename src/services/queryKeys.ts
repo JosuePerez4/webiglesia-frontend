@@ -12,6 +12,7 @@ export const qk = {
   grupo: (id: string) => ['grupos', id] as const,
   clasesGrupo: (grupoId: string) => ['grupos', grupoId, 'clases'] as const,
   gruposPorProfesor: (profesorId: string) => ['profesores', profesorId, 'grupos'] as const,
+  profesor: (id: string) => ['profesores', id] as const,
   administradores: () => ['administradores'] as const,
 };
 

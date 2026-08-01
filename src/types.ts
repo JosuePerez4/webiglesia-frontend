@@ -13,6 +13,7 @@ export interface Profesor {
   telefono?: string;
   fechaDeNacimiento?: string;
   correo?: string;
+  username?: string;
   activo?: boolean;
 }
 
