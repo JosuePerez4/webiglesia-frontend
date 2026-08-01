@@ -8,9 +8,17 @@ new top-level sections: **Inicio** (welcome/quick links, no stats) and
 **Usuarios** (unified admin/profesor/estudiante management, replacing the
 separate Profesores and Estudiantes tabs). **Grupos** keeps its own
 top-level section. All existing functionality is preserved — this is a
-reskin + navigation restructure, not a feature rewrite, with one addition
-(admin user creation) and one known limitation (see "Known limitation"
-below).
+reskin + navigation restructure, not a feature rewrite, plus one addition
+(full admin user management: create, list, activate/deactivate, edit
+username/password — see "Usuarios → Admins panel" below).
+
+**Update after re-checking the backend:** the original version of this
+spec assumed there was no way to list admin users and shipped the Admins
+panel create-only. That was wrong — `AdministradorController`
+(`/administradores`) exists and was missed on the first pass (found by
+grepping only `UsuarioController`). It has full create + list support, so
+the Admins panel gets the same table/search/activate/deactivate treatment
+as Profesores/Estudiantes after all. Details below.
 
 Approved via visual companion (`.superpowers/brainstorm/1247-1785604713/content/`):
 `palette-layout.html` (palette choice) → `palette-icons-v2.html` (lucide
@@ -127,40 +135,78 @@ charts — purely navigational, per user's explicit "no stats for now."
 
 ## Usuarios → Admins panel (new)
 
-This is the one genuinely new feature (not a migration of existing UI).
+Now matches Profesores/Estudiantes almost exactly, backed by
+`AdministradorController` (`/administradores`) — a full sibling of
+`ProfesorController`/`EstudianteController`, not the generic
+`UsuarioController`. `Administrador` is a `Persona` (nombre, apellido,
+telefono, fechaDeNacimiento, correo) that wraps a `Usuario`
+(username/contrasena/activo), exactly like `Profesor`/`Estudiante`.
 
-- **"Agregar Admin" button** → opens a new `AdminFormModal` (small form:
-  `nombreusuario`, `contrasena`) → calls new `api.crearUsuario({ nombreusuario,
-  contrasena, rol: 'ADMIN' })`, hitting the existing backend
-  `POST /usuarios/crear` (confirmed present, accepts `rol: 'ADMIN'`).
-  On success: toast "Administrador creado correctamente." No list refetch
-  (see limitation below — there's nothing to refetch into).
-- **Known limitation:** the backend `UsuarioController` has no "list all
-  users" endpoint (only `GET /usuarios/{id}` by id, `crear`, `editar`,
-  `cambiar-estado`). Per user's explicit decision, the Admins panel ships
-  **create-only**: no table, no search box, no activo/inactive filter, no
-  edit/deactivate row actions — those all require a list endpoint that
-  doesn't exist yet. The panel shows the "Agregar Admin" button plus a
-  static note ("El listado de administradores no está disponible todavía")
-  in place of the table. This deviates from the approved mockup (which
-  showed a full table with search/filter/deactivate for symmetry with
-  Profesores/Estudiantes) — that mockup assumed the endpoint would exist;
-  it doesn't, and adding it is explicitly out of scope for this round.
-  When a list endpoint is added later, wiring up the full table (mirroring
-  `ProfesoresTab`'s pattern) is a small follow-up, not a redesign.
+**Endpoints** (all pre-existing, none added):
+
+| Method | Path | Notes |
+|---|---|---|
+| `POST` | `/administradores` | Body: `nombre, apellido, telefono?, fechaDeNacimiento?, correo?, username, contrasena` (nombre/apellido/username/contrasena required). Returns `AdministradorResponse`. |
+| `GET` | `/administradores` | Returns **all** admins, no query params — no `?activo=`/`?query=` support (unlike `/profesores`, `/estudiantes`). |
+| `GET` | `/administradores/{id}` | Single admin, 404 if missing. Not needed by the UI (list already has everything). |
+| `PUT` | `/usuarios/editar/{id}` | Reused from `UsuarioController` — edits `nombreusuario` + `contrasena` (**both required, no partial update**). This is the *only* way to edit an existing admin: there is no `PUT /administradores/{id}`, so nombre/apellido/telefono/correo are **not editable** after creation. |
+| `PATCH` | `/usuarios/cambiar-estado/{id}` | Reused, same as Profesores/Estudiantes — activate/deactivate by id. |
+
+**Consequence for the UI:**
+
+- **List/search/filter are client-side**, not server-side: fetch the full
+  `GET /administradores` list once, then filter by search text and by
+  activo/inactive/all in the component — same *pattern* `ProfesoresTab`
+  already uses for its text search on top of server data, just extended to
+  cover the activo filter too since the server won't do it here.
+- **`AdminFormModal` has two modes with different fields**, unlike
+  `ProfesorFormModal` which always shows the same form:
+  - *Crear*: nombre, apellido, teléfono, fecha nacimiento, correo,
+    usuario, contraseña (7 fields, mirrors `CrearAdministradorRequest`) →
+    `api.crearAdministrador(...)`.
+  - *Editar*: nombre/apellido shown read-only for context (no endpoint to
+    change them), usuario + contraseña editable → `api.editarUsuario(id,
+    { nombreusuario, contrasena })`. The password field has no "leave
+    blank to keep current" option — the endpoint requires a value every
+    time, so the modal must pre-fill or clearly ask the admin to re-enter
+    a password on every edit (re-enter, not blank-means-unchanged).
+- **Activate/deactivate row action**: identical to `ProfesoresTab`'s
+  `toggleActivo` mutation (`api.cambiarEstadoUsuario`), including the
+  "Eliminar"/"Reactivar" `ConfirmDialog` copy pattern.
+- Columns: Nombre Completo (avatar + nombre+apellido, like Profesores),
+  Estado (Badge), Usuario (`username`), Teléfono, Correo — dropping
+  "Fecha Nacimiento" from the visible columns is fine (Profesores shows
+  it; optional here, not load-bearing).
 
 ## API layer changes
 
-`src/services/api.ts` gains one method:
+`src/services/api.ts` gains three methods:
 
 ```ts
-crearUsuario: (data: { nombreusuario: string; contrasena: string; rol: 'ADMIN' }) =>
-  request<Usuario>('/usuarios/crear', { method: 'POST', body: JSON.stringify(data) }),
+// Administradores
+getAdministradores: () =>
+  request<Administrador[]>('/administradores'),
+
+crearAdministrador: (admin: Partial<Administrador> & { username: string; contrasena: string }) =>
+  request<Administrador>('/administradores', {
+    method: 'POST',
+    body: JSON.stringify(admin)
+  }),
+
+// Usuarios
+editarUsuario: (id: string, data: { nombreusuario: string; contrasena: string }) =>
+  request<Usuario>(`/usuarios/editar/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
 ```
 
-No other backend calls change. No backend files are touched (per user's
-"solo crear, sin listar por ahora" decision — no endpoint added this
-round).
+`src/types.ts` gains an `Administrador` interface mirroring
+`AdministradorResponse`: `{ id: string; nombre: string; apellido: string;
+telefono?: string; fechaDeNacimiento?: string; correo?: string; username:
+string; activo: boolean }`. No backend files are touched — everything
+needed already exists in `AdministradorController` and
+`UsuarioController`.
 
 ## Components touched
 
@@ -168,8 +214,14 @@ round).
 - `AdminSidebar` — nav + brand + logout
 - `InicioTab` — welcome + quick links
 - `UsuariosTab` — role sub-tabs, routes to the three panels
-- `AdminsPanel` — create-only admin management
-- `AdminFormModal` — username/password form for creating an admin
+- `AdminsPanel` — full admin management: list (client-filtered
+  search/activo), create, edit username/password, activate/deactivate —
+  same shape as `ProfesoresTab`, backed by `/administradores` +
+  `/usuarios/editar` + `/usuarios/cambiar-estado`
+- `AdminFormModal` — two-mode form (create: full profile + credentials;
+  edit: username/password only), see "Usuarios → Admins panel" above
+- `useAdministradores` hook (`src/hooks/`) — mirrors `useProfesores`/
+  `useEstudiantes`, wraps `api.getAdministradores()` in a `useQuery`
 
 **Modified:**
 - `AdminLayout.tsx` — sidebar layout instead of header+tabs+stat cards;
@@ -180,7 +232,13 @@ round).
   deleted since stat cards are gone)
 - `src/routes/router.tsx` — new nested routes under `/admin/usuarios/*`,
   `/admin` index redirect target changes from `grupos` to `inicio`
-- `src/services/api.ts` — add `crearUsuario`
+- `src/services/api.ts` — add `getAdministradores`, `crearAdministrador`,
+  `editarUsuario`
+- `src/types.ts` — add `Administrador` interface
+- `src/services/queryKeys.ts` — add an `administradores` query key
+  (mirrors the existing `profesores`/`estudiantes` keys), so
+  create/edit/activate mutations can invalidate the list the same way
+  `ProfesoresTab` already does for its own resource
 
 **Unchanged (moved, not edited):**
 - `ProfesoresTab.tsx`, `EstudiantesTab.tsx`, `GruposTab.tsx`,
@@ -201,6 +259,11 @@ round).
 - `AdminFormModal` submit error (e.g. duplicate `nombreusuario` — backend
   validation) shows a toast via the existing `useToast`, same pattern as
   `ProfesorFormModal`'s save mutation.
+- `PUT /usuarios/editar/{id}` requires `contrasena` on every edit (no
+  partial-update semantics) — the edit form must validate it's non-empty
+  client-side before submit, same as the required-field pattern already
+  used elsewhere, so a blank password field fails fast instead of hitting
+  a 400 from the backend.
 - Sidebar nav active-state derives from `location.pathname`, same
   mechanism the current tabs use — no new edge cases.
 
