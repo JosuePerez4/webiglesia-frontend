@@ -1,9 +1,12 @@
-.adminShell {
-  display: flex;
-  min-height: 100vh;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-
+/*
+ * The variable overrides live on `body.admin-theme` (toggled by AdminLayout.tsx)
+ * instead of `.adminShell` directly. Radix Dialog/Toast portal their content to
+ * `document.body`, outside `.adminShell`'s DOM subtree — CSS custom properties
+ * only cascade through real DOM ancestry, so a wrapper-scoped override never
+ * reaches portaled modals/toasts. `body` is an ancestor of both the normal
+ * tree and the portal target, so putting the tokens there fixes both.
+ */
+:global(body.admin-theme) {
   --bg-primary: #12131a;
   --bg-secondary: #1c1f2b;
   --bg-card: #1c1f2b;
@@ -33,6 +36,13 @@
   --c-emerald: #6cc9b0;
 
   color-scheme: dark;
+}
+
+.adminShell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .main {
