@@ -1,3 +1,5 @@
+@import './styles/staffDarkTheme.css';
+
 :root {
   /* Color Palette — Church Shield */
   --c-blue: #1a5276;
