@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { EmptyState } from './EmptyState';
 import styles from './DataTable.module.css';
 
@@ -7,6 +8,9 @@ export interface DataTableColumn<T> {
   render: (row: T) => ReactNode;
   /** Rendered as the bold header of the mobile card instead of a labeled field. */
   primary?: boolean;
+  /** Rendered directly under the primary field on the mobile card, always visible —
+   * every other secondary column collapses behind the "Ver más" toggle instead. */
+  subtitle?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -28,6 +32,8 @@ export function DataTable<T>({
   emptyTitle,
   emptyDescription,
 }: DataTableProps<T>) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
   if (rows.length === 0) {
     return (
       <div className={`glass ${styles.wrapper}`}>
@@ -37,7 +43,17 @@ export function DataTable<T>({
   }
 
   const primaryCol = columns.find((c) => c.primary) ?? columns[0];
-  const secondaryCols = columns.filter((c) => c !== primaryCol);
+  const subtitleCol = columns.find((c) => c.subtitle && c !== primaryCol);
+  const secondaryCols = columns.filter((c) => c !== primaryCol && c !== subtitleCol);
+
+  const toggleExpanded = (key: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   return (
     <div className={`glass ${styles.wrapper}`}>
@@ -67,18 +83,43 @@ export function DataTable<T>({
       </table>
 
       <div className={styles.cards}>
-        {rows.map((row) => (
-          <div className={styles.card} key={rowKey(row)}>
-            <div className={styles.cardHeader}>{primaryCol.render(row)}</div>
-            {secondaryCols.map((col) => (
-              <div className={styles.cardField} key={col.header}>
-                <span className={styles.cardFieldLabel}>{col.header}</span>
-                <span>{col.render(row)}</span>
-              </div>
-            ))}
-            {actions && <div className={styles.actions}>{actions(row)}</div>}
-          </div>
-        ))}
+        {rows.map((row) => {
+          const key = rowKey(row);
+          const isOpen = expanded.has(key);
+          return (
+            <div className={styles.card} key={key}>
+              <div className={styles.cardHeader}>{primaryCol.render(row)}</div>
+              {subtitleCol && <div className={styles.cardSubtitle}>{subtitleCol.render(row)}</div>}
+
+              {secondaryCols.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.cardToggle}
+                    onClick={() => toggleExpanded(key)}
+                    aria-expanded={isOpen}
+                  >
+                    {isOpen ? 'Ver menos' : 'Ver más'}
+                    <ChevronDown size={16} className={`${styles.chevron}${isOpen ? ` ${styles.chevronOpen}` : ''}`} />
+                  </button>
+
+                  <div className={`${styles.cardDetails}${isOpen ? ` ${styles.cardDetailsOpen}` : ''}`}>
+                    <div className={styles.cardDetailsInner}>
+                      {secondaryCols.map((col) => (
+                        <div className={styles.cardField} key={col.header}>
+                          <span className={styles.cardFieldLabel}>{col.header}</span>
+                          <span>{col.render(row)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {actions && <div className={styles.actions}>{actions(row)}</div>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

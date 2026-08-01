@@ -117,6 +117,7 @@ export function EstudiantesTab() {
     },
     {
       header: 'Grupo Asignado',
+      subtitle: true,
       render: (e) =>
         e.nombreGrupo ? (
           <Badge tone="purple">{e.nombreGrupo}</Badge>
