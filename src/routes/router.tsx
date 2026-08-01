@@ -8,6 +8,9 @@ import { GruposTab } from '../features/admin/GruposTab';
 import { ProfesoresTab } from '../features/admin/ProfesoresTab';
 import { EstudiantesTab } from '../features/admin/EstudiantesTab';
 import { GrupoEditScreen } from '../features/admin/GrupoEditScreen';
+import { InicioTab } from '../features/admin/InicioTab';
+import { UsuariosTab } from '../features/admin/UsuariosTab';
+import { AdminsPanel } from '../features/admin/AdminsPanel';
 import { ProfesorLayout } from '../features/profesor/ProfesorLayout';
 import { GruposList } from '../features/profesor/GruposList';
 import { GrupoDetail } from '../features/profesor/GrupoDetail';
@@ -31,13 +34,18 @@ export function AppRoutes() {
 
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
         <Route element={<AdminLayout />}>
-          <Route index element={<Navigate to="grupos" replace />} />
+          <Route index element={<Navigate to="inicio" replace />} />
+          <Route path="inicio" element={<InicioTab />} />
+          <Route path="usuarios" element={<UsuariosTab />}>
+            <Route index element={<Navigate to="admins" replace />} />
+            <Route path="admins" element={<AdminsPanel />} />
+            <Route path="profesores" element={<ProfesoresTab />} />
+            <Route path="estudiantes" element={<EstudiantesTab />} />
+          </Route>
           <Route path="grupos" element={<GruposTab />} />
-          <Route path="profesores" element={<ProfesoresTab />} />
-          <Route path="estudiantes" element={<EstudiantesTab />} />
+          <Route path="grupos/nuevo" element={<GrupoEditScreen />} />
+          <Route path="grupos/:id/editar" element={<GrupoEditScreen />} />
         </Route>
-        <Route path="grupos/nuevo" element={<GrupoEditScreen />} />
-        <Route path="grupos/:id/editar" element={<GrupoEditScreen />} />
       </Route>
 
       <Route path="/profesor" element={<ProtectedRoute allowedRoles={['PROFESOR']} />}>
