@@ -1,4 +1,4 @@
-import type { Usuario, Profesor, Estudiante, Grupo, Clase } from '../types';
+import type { Usuario, Profesor, Estudiante, Grupo, Clase, Administrador } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -65,6 +65,22 @@ export const api = {
     request<Usuario>(`/usuarios/cambiar-estado/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ activo })
+    }),
+
+  editarUsuario: (id: string, data: { nombreusuario: string; contrasena: string }) =>
+    request<Usuario>(`/usuarios/editar/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+
+  // Administradores
+  getAdministradores: () =>
+    request<Administrador[]>('/administradores'),
+
+  crearAdministrador: (admin: Omit<Administrador, 'id' | 'activo'> & { contrasena: string }) =>
+    request<Administrador>('/administradores', {
+      method: 'POST',
+      body: JSON.stringify(admin)
     }),
 
   // Estudiantes

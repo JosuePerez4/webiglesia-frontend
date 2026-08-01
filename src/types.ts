@@ -16,6 +16,17 @@ export interface Profesor {
   activo?: boolean;
 }
 
+export interface Administrador {
+  id: string;
+  nombre: string;
+  apellido: string;
+  telefono?: string;
+  fechaDeNacimiento?: string;
+  correo?: string;
+  username: string;
+  activo?: boolean;
+}
+
 export interface Estudiante {
   id: string;
   nombre: string;

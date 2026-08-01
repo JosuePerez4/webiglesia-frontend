@@ -12,6 +12,7 @@ export const qk = {
   grupo: (id: string) => ['grupos', id] as const,
   clasesGrupo: (grupoId: string) => ['grupos', grupoId, 'clases'] as const,
   gruposPorProfesor: (profesorId: string) => ['profesores', profesorId, 'grupos'] as const,
+  administradores: () => ['administradores'] as const,
 };
 
 /** Prefijos para invalidación por colección completa. */
@@ -19,4 +20,5 @@ export const qkRoot = {
   estudiantes: ['estudiantes'] as const,
   profesores: ['profesores'] as const,
   grupos: ['grupos'] as const,
+  administradores: ['administradores'] as const,
 };
