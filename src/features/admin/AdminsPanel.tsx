@@ -48,10 +48,13 @@ export function AdminsPanel() {
   };
 
   const guardar = useMutation({
-    mutationFn: (values: AdminFormValues) =>
-      editingAdmin
-        ? api.editarUsuario(editingAdmin.id, { nombreusuario: values.username, contrasena: values.contrasena })
-        : api.crearAdministrador(values),
+    mutationFn: async (values: AdminFormValues): Promise<void> => {
+      if (editingAdmin) {
+        await api.editarUsuario(editingAdmin.id, { nombreusuario: values.username, contrasena: values.contrasena });
+      } else {
+        await api.crearAdministrador(values);
+      }
+    },
     onSuccess: async () => {
       const wasEditing = Boolean(editingAdmin);
       setIsModalOpen(false);
