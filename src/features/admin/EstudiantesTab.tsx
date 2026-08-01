@@ -113,6 +113,7 @@ export function EstudiantesTab() {
     },
     {
       header: 'Estado',
+      badge: true,
       render: (e) => (e.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="neutral">Inactivo</Badge>),
     },
     {

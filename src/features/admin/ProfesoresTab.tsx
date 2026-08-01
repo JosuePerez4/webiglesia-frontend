@@ -83,6 +83,7 @@ export function ProfesoresTab() {
     },
     {
       header: 'Estado',
+      badge: true,
       render: (p) => (p.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="neutral">Inactivo</Badge>),
     },
     { header: 'Teléfono', render: (p) => p.telefono || '—' },

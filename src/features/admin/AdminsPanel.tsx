@@ -89,6 +89,7 @@ export function AdminsPanel() {
     },
     {
       header: 'Estado',
+      badge: true,
       render: (a) => (a.activo ? <Badge tone="success">Activo</Badge> : <Badge tone="neutral">Inactivo</Badge>),
     },
     { header: 'Usuario', render: (a) => a.username },

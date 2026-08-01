@@ -11,6 +11,9 @@ export interface DataTableColumn<T> {
   /** Rendered directly under the primary field on the mobile card, always visible —
    * every other secondary column collapses behind the "Ver más" toggle instead. */
   subtitle?: boolean;
+  /** Rendered top-right of the mobile card header, next to the primary field —
+   * for a status badge that should stay visible without expanding the card. */
+  badge?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -44,7 +47,8 @@ export function DataTable<T>({
 
   const primaryCol = columns.find((c) => c.primary) ?? columns[0];
   const subtitleCol = columns.find((c) => c.subtitle && c !== primaryCol);
-  const secondaryCols = columns.filter((c) => c !== primaryCol && c !== subtitleCol);
+  const badgeCol = columns.find((c) => c.badge && c !== primaryCol && c !== subtitleCol);
+  const secondaryCols = columns.filter((c) => c !== primaryCol && c !== subtitleCol && c !== badgeCol);
 
   const toggleExpanded = (key: string) => {
     setExpanded((prev) => {
@@ -88,7 +92,10 @@ export function DataTable<T>({
           const isOpen = expanded.has(key);
           return (
             <div className={styles.card} key={key}>
-              <div className={styles.cardHeader}>{primaryCol.render(row)}</div>
+              <div className={styles.cardHeader}>
+                {primaryCol.render(row)}
+                {badgeCol && <div className={styles.cardBadge}>{badgeCol.render(row)}</div>}
+              </div>
               {subtitleCol && <div className={styles.cardSubtitle}>{subtitleCol.render(row)}</div>}
 
               {secondaryCols.length > 0 && (

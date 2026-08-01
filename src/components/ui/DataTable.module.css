@@ -93,8 +93,13 @@
 
 .cardHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.75rem;
+}
+
+.cardBadge {
+  flex-shrink: 0;
 }
 
 .cardSubtitle {
