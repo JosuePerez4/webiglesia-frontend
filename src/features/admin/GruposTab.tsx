@@ -61,6 +61,8 @@ export function GruposTab() {
 
   return (
     <div>
+      <h1 className={styles.title}>Grupos</h1>
+      <p className={styles.subtitle}>Cursos y clases de la iglesia</p>
       <div className={styles.toolbar}>
         <SearchInput value={search} onChange={setSearch} placeholder="Buscar grupos..." />
         <button className="btn btn-primary" onClick={() => navigate('/admin/grupos/nuevo')}>
