@@ -1,12 +1,52 @@
-.statCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+.adminShell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+
+  --bg-primary: #12131a;
+  --bg-secondary: #1c1f2b;
+  --bg-card: #1c1f2b;
+  --text-primary: #e7e9f0;
+  --text-secondary: #c7cad6;
+  --text-muted: #8890a6;
+  --border-color: rgba(255, 255, 255, 0.07);
+  --primary: #6ea8e0;
+  --primary-hover: #82b7ea;
+  --accent: #a68bd1;
+  --success: #7fd9c4;
+  --warning: #e3c073;
+  --danger: #e08f8f;
+  --radius-md: 0.85rem;
+  --radius-lg: 1.15rem;
+
+  /* .btn-primary/.btn-danger/.btn-success and Avatar/Badge text colors use
+     these raw brand tokens directly (not --primary/--danger/--success), so
+     they must be overridden too or buttons keep the old light-blue gradient. */
+  --c-blue: #6ea8e0;
+  --c-blue-light: #82b7ea;
+  --c-purple: #a68bd1;
+  --c-gold: #e3c073;
+  --c-red: #e08f8f;
+  --c-red-light: #eaa5a5;
+  --c-teal: #7fd9c4;
+  --c-emerald: #6cc9b0;
+
+  color-scheme: dark;
 }
 
-@media (max-width: 640px) {
-  .statCards {
-    grid-template-columns: 1fr;
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem 2.5rem;
+}
+
+@media (max-width: 720px) {
+  .adminShell {
+    flex-direction: column;
+  }
+
+  .main {
+    padding: 1.5rem;
   }
 }
