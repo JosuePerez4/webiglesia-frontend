@@ -1,4 +1,4 @@
-.adminShell {
+.profesorShell {
   display: flex;
   min-height: 100vh;
   background: var(--bg-primary);
@@ -12,7 +12,7 @@
 }
 
 @media (max-width: 720px) {
-  .adminShell {
+  .profesorShell {
     flex-direction: column;
   }
 

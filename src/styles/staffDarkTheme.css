@@ -1,0 +1,40 @@
+/*
+ * Shared dark palette for the staff-facing portals (admin, profesor).
+ * Applied via a body class, not a wrapper element, because Radix
+ * Dialog/Toast portal their content to document.body — CSS custom
+ * properties only cascade through real DOM ancestry, so a wrapper-scoped
+ * override never reaches portaled modals/toasts. body is an ancestor of
+ * both the normal tree and the portal target, so this reaches both.
+ * Toggled by src/hooks/useStaffDarkTheme.ts.
+ */
+body.staff-dark-theme {
+  --bg-primary: #12131a;
+  --bg-secondary: #1c1f2b;
+  --bg-card: #1c1f2b;
+  --text-primary: #e7e9f0;
+  --text-secondary: #c7cad6;
+  --text-muted: #8890a6;
+  --border-color: rgba(255, 255, 255, 0.07);
+  --primary: #6ea8e0;
+  --primary-hover: #82b7ea;
+  --accent: #a68bd1;
+  --success: #7fd9c4;
+  --warning: #e3c073;
+  --danger: #e08f8f;
+  --radius-md: 0.85rem;
+  --radius-lg: 1.15rem;
+
+  /* .btn-primary/.btn-danger/.btn-success and Avatar/Badge text colors use
+     these raw brand tokens directly (not --primary/--danger/--success), so
+     they must be overridden too or buttons keep the old light-blue gradient. */
+  --c-blue: #6ea8e0;
+  --c-blue-light: #82b7ea;
+  --c-purple: #a68bd1;
+  --c-gold: #e3c073;
+  --c-red: #e08f8f;
+  --c-red-light: #eaa5a5;
+  --c-teal: #7fd9c4;
+  --c-emerald: #6cc9b0;
+
+  color-scheme: dark;
+}

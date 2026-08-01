@@ -1,14 +1,12 @@
 import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Calendar, CalendarCheck, Check, X } from 'lucide-react';
-import type { Clase, Grupo } from '../../../types';
+import type { Clase } from '../../../types';
+import type { GrupoDetailContext } from './grupoDetailContext';
 import styles from './HistorialTab.module.css';
 
-interface HistorialTabProps {
-  grupo: Grupo;
-  clases: Clase[];
-}
-
-export function HistorialTab({ grupo, clases }: HistorialTabProps) {
+export function HistorialTab() {
+  const { grupo, clases } = useOutletContext<GrupoDetailContext>();
   const [selectedClase, setSelectedClase] = useState<Clase | null>(null);
 
   return (

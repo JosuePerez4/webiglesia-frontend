@@ -8,9 +8,16 @@ import { GruposTab } from '../features/admin/GruposTab';
 import { ProfesoresTab } from '../features/admin/ProfesoresTab';
 import { EstudiantesTab } from '../features/admin/EstudiantesTab';
 import { GrupoEditScreen } from '../features/admin/GrupoEditScreen';
+import { InicioTab } from '../features/admin/InicioTab';
+import { UsuariosTab } from '../features/admin/UsuariosTab';
+import { AdminsPanel } from '../features/admin/AdminsPanel';
 import { ProfesorLayout } from '../features/profesor/ProfesorLayout';
+import { PerfilTab } from '../features/profesor/PerfilTab';
 import { GruposList } from '../features/profesor/GruposList';
 import { GrupoDetail } from '../features/profesor/GrupoDetail';
+import { EstudiantesTab as GrupoEstudiantesTab } from '../features/profesor/GrupoDetail/EstudiantesTab';
+import { AsistenciaTab } from '../features/profesor/GrupoDetail/AsistenciaTab';
+import { HistorialTab } from '../features/profesor/GrupoDetail/HistorialTab';
 import { StudentPlaceholder } from '../features/estudiante/StudentPlaceholder';
 
 function LoginRoute() {
@@ -31,19 +38,31 @@ export function AppRoutes() {
 
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
         <Route element={<AdminLayout />}>
-          <Route index element={<Navigate to="grupos" replace />} />
+          <Route index element={<Navigate to="inicio" replace />} />
+          <Route path="inicio" element={<InicioTab />} />
+          <Route path="usuarios" element={<UsuariosTab />}>
+            <Route index element={<Navigate to="admins" replace />} />
+            <Route path="admins" element={<AdminsPanel />} />
+            <Route path="profesores" element={<ProfesoresTab />} />
+            <Route path="estudiantes" element={<EstudiantesTab />} />
+          </Route>
           <Route path="grupos" element={<GruposTab />} />
-          <Route path="profesores" element={<ProfesoresTab />} />
-          <Route path="estudiantes" element={<EstudiantesTab />} />
+          <Route path="grupos/nuevo" element={<GrupoEditScreen />} />
+          <Route path="grupos/:id/editar" element={<GrupoEditScreen />} />
         </Route>
-        <Route path="grupos/nuevo" element={<GrupoEditScreen />} />
-        <Route path="grupos/:id/editar" element={<GrupoEditScreen />} />
       </Route>
 
       <Route path="/profesor" element={<ProtectedRoute allowedRoles={['PROFESOR']} />}>
         <Route element={<ProfesorLayout />}>
-          <Route index element={<GruposList />} />
-          <Route path="grupos/:id" element={<GrupoDetail />} />
+          <Route index element={<Navigate to="grupos" replace />} />
+          <Route path="perfil" element={<PerfilTab />} />
+          <Route path="grupos" element={<GruposList />} />
+          <Route path="grupos/:id" element={<GrupoDetail />}>
+            <Route index element={<Navigate to="estudiantes" replace />} />
+            <Route path="estudiantes" element={<GrupoEstudiantesTab />} />
+            <Route path="asistencia" element={<AsistenciaTab />} />
+            <Route path="historial" element={<HistorialTab />} />
+          </Route>
         </Route>
       </Route>
 

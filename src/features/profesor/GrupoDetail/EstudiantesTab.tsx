@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Edit2, Plus, Users } from 'lucide-react';
 import { api } from '../../../services/api';
@@ -8,13 +9,10 @@ import { SearchInput } from '../../../components/ui/SearchInput';
 import { DataTable, type DataTableColumn } from '../../../components/ui/DataTable';
 import { Avatar } from '../../../components/ui/Avatar';
 import { Modal } from '../../../components/ui/Modal';
-import type { Estudiante, Grupo } from '../../../types';
+import type { Estudiante } from '../../../types';
+import type { GrupoDetailContext } from './grupoDetailContext';
 import dataTableStyles from '../../../components/ui/DataTable.module.css';
 import modalStyles from '../../../components/ui/Modal.module.css';
-
-interface EstudiantesTabProps {
-  grupo: Grupo;
-}
 
 const emptyForm = { nombre: '', apellido: '', telefono: '', fechaDeNacimiento: '', correo: '' };
 
@@ -29,7 +27,8 @@ function initialForm(editingStudent: Estudiante | null) {
   };
 }
 
-export function EstudiantesTab({ grupo }: EstudiantesTabProps) {
+export function EstudiantesTab() {
+  const { grupo } = useOutletContext<GrupoDetailContext>();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');

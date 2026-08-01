@@ -4,19 +4,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Save } from 'lucide-react';
 import { api } from '../../services/api';
 import { qkRoot } from '../../services/queryKeys';
-import { useAuth } from '../../context/useAuth';
 import { useProfesores } from '../../hooks/useProfesores';
 import { useEstudiantes } from '../../hooks/useEstudiantes';
 import { useToast } from '../../components/ui/useToast';
 import { PersonPickerList } from '../../components/ui/PersonPickerList';
-import { PageHeader } from '../../components/ui/PageHeader';
 import styles from './GrupoEditScreen.module.css';
 
 export function GrupoEditScreen() {
   const { id } = useParams();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const { showToast } = useToast();
 
   // Solo se listan profesores/estudiantes activos para asignar a un grupo.
@@ -87,21 +84,11 @@ export function GrupoEditScreen() {
   }));
 
   return (
-    <>
-      <PageHeader
-        section={isEditing ? 'Editar Grupo' : 'Nuevo Grupo'}
-        actions={
-          <button className="btn btn-secondary" onClick={logout} style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}>
-            Cerrar Sesión
-          </button>
-        }
-      />
-
-      <div className="container animate-fade-in" style={{ paddingBottom: '4rem' }}>
-        <button onClick={() => navigate('/admin/grupos')} className="btn btn-secondary" style={{ marginBottom: '1.5rem' }}>
-          <ArrowLeft size={16} />
-          <span>Volver a Grupos</span>
-        </button>
+    <div>
+      <button onClick={() => navigate('/admin/grupos')} className="btn btn-secondary" style={{ marginBottom: '1.5rem' }}>
+        <ArrowLeft size={16} />
+        <span>Volver a Grupos</span>
+      </button>
 
         {loading ? (
           <p style={{ color: 'var(--text-muted)' }}>Cargando grupo...</p>
@@ -146,7 +133,6 @@ export function GrupoEditScreen() {
             </div>
           </>
         )}
-      </div>
-    </>
+    </div>
   );
 }

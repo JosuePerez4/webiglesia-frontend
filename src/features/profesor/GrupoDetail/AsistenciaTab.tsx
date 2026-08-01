@@ -1,16 +1,13 @@
 import { useState } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
 import { api } from '../../../services/api';
 import { qk } from '../../../services/queryKeys';
 import { useToast } from '../../../components/ui/useToast';
 import type { Grupo } from '../../../types';
+import type { GrupoDetailContext } from './grupoDetailContext';
 import styles from './AsistenciaTab.module.css';
-
-interface AsistenciaTabProps {
-  grupo: Grupo;
-  onSubmitted: () => void;
-}
 
 function initialChecklist(grupo: Grupo) {
   const initial: { [studentId: string]: boolean } = {};
@@ -20,7 +17,9 @@ function initialChecklist(grupo: Grupo) {
   return initial;
 }
 
-export function AsistenciaTab({ grupo, onSubmitted }: AsistenciaTabProps) {
+export function AsistenciaTab() {
+  const { grupo } = useOutletContext<GrupoDetailContext>();
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
@@ -42,7 +41,7 @@ export function AsistenciaTab({ grupo, onSubmitted }: AsistenciaTabProps) {
       // Solo cambian las clases del grupo; el grupo en sí no hace falta recargarlo.
       await queryClient.invalidateQueries({ queryKey: qk.clasesGrupo(grupo.id) });
       showToast('¡Asistencia registrada correctamente!');
-      onSubmitted();
+      navigate('../historial', { relative: 'path' });
     },
     onError: (err) => showToast(err instanceof Error ? err.message : 'Error al registrar asistencia', 'error'),
   });

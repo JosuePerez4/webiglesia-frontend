@@ -11,15 +11,6 @@
   margin-bottom: 1.5rem;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.25rem;
-}
-
-.mutedText {
-  color: var(--text-muted);
+.panel {
+  margin-top: 1.5rem;
 }

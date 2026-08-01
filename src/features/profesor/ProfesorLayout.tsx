@@ -1,23 +1,17 @@
 import { Outlet } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
-import { PageHeader } from '../../components/ui/PageHeader';
+import { useStaffDarkTheme } from '../../hooks/useStaffDarkTheme';
+import { ProfesorSidebar } from './ProfesorSidebar';
+import styles from './ProfesorLayout.module.css';
 
 export function ProfesorLayout() {
-  const { logout } = useAuth();
+  useStaffDarkTheme();
 
   return (
-    <>
-      <PageHeader
-        section="Portal Docente"
-        actions={
-          <button className="btn btn-secondary" onClick={logout} style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}>
-            Cerrar Sesión
-          </button>
-        }
-      />
-      <div className="container animate-fade-in" style={{ paddingBottom: '4rem' }}>
+    <div className={styles.profesorShell}>
+      <ProfesorSidebar />
+      <main className={styles.main}>
         <Outlet />
-      </div>
-    </>
+      </main>
+    </div>
   );
 }
