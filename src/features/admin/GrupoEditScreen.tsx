@@ -84,7 +84,7 @@ export function GrupoEditScreen() {
   }));
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <button onClick={() => navigate('/admin/grupos')} className="btn btn-secondary" style={{ marginBottom: '1.5rem' }}>
         <ArrowLeft size={16} />
         <span>Volver a Grupos</span>

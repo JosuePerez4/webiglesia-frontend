@@ -97,7 +97,7 @@ export function AdminsPanel() {
   ];
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className={styles.toolbar}>
         <div className={styles.filters}>
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar administradores..." />

@@ -19,7 +19,19 @@
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
-  animation: fadeIn var(--transition-normal) forwards;
+  animation: fadeIn var(--transition-normal) var(--ease-confident) forwards;
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(12px); }
+}
+
+/* Exit direction matches the viewport's bottom-right anchor — the toast
+   leaves toward the edge it's pinned to. Duration matches Toast.tsx's
+   EXIT_MS so the unmount doesn't cut the animation off. */
+.leaving {
+  animation: toastOut 0.2s ease forwards;
 }
 
 .success { border-left: 4px solid var(--success); }

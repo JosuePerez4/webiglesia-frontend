@@ -11,7 +11,7 @@ export function InicioTab() {
   const today = FORMATTER.format(new Date());
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <h1 className={styles.title}>Hola, {usuario?.nombreusuario} 👋</h1>
       <p className={styles.subtitle}>{today.charAt(0).toUpperCase() + today.slice(1)} · Panel de Administración</p>
 

@@ -43,6 +43,7 @@
 }
 
 .navItem {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -55,6 +56,19 @@
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
+.navItem::before {
+  content: '';
+  position: absolute;
+  left: -0.4rem;
+  top: 50%;
+  width: 3px;
+  height: 60%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transform: translateY(-50%) scaleY(0);
+  transition: transform var(--transition-normal) var(--ease-confident);
+}
+
 .navItem:hover {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.04);
@@ -63,6 +77,10 @@
 .navItemActive {
   color: var(--primary);
   background: rgba(110, 168, 224, 0.16);
+}
+
+.navItemActive::before {
+  transform: translateY(-50%) scaleY(1);
 }
 
 .spacer {

@@ -47,6 +47,18 @@
 
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Confident-arrival easing for spatial/layout motion (entrances, indicators) —
+     deliberately distinct from --transition-normal, which stays on hover/feedback. */
+  --ease-confident: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -210,6 +222,11 @@ input:focus, select:focus, textarea:focus {
   box-shadow: var(--shadow-md), 0 4px 12px rgba(26, 188, 156, 0.3);
 }
 
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: 0.08s;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -262,3 +279,17 @@ input:focus, select:focus, textarea:focus {
   transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
 }
+
+/* Bounded entrance stagger — first 8 cards only, so a big grid doesn't make
+   the user wait through page-load choreography (impeccable "animate" guidance). */
+.card-grid > * {
+  animation: fadeIn var(--transition-normal) var(--ease-confident) backwards;
+}
+.card-grid > *:nth-child(1) { animation-delay: 0ms; }
+.card-grid > *:nth-child(2) { animation-delay: 30ms; }
+.card-grid > *:nth-child(3) { animation-delay: 60ms; }
+.card-grid > *:nth-child(4) { animation-delay: 90ms; }
+.card-grid > *:nth-child(5) { animation-delay: 120ms; }
+.card-grid > *:nth-child(6) { animation-delay: 150ms; }
+.card-grid > *:nth-child(7) { animation-delay: 180ms; }
+.card-grid > *:nth-child(n+8) { animation-delay: 210ms; }

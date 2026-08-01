@@ -61,7 +61,7 @@ export function GrupoDetail() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <button onClick={() => navigate('/profesor')} className={`btn btn-secondary ${styles.backButton}`}>
         <ArrowLeft size={16} />
         <span>Volver a Mis Clases</span>

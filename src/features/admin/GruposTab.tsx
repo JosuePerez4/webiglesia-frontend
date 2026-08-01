@@ -60,7 +60,7 @@ export function GruposTab() {
   ];
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <h1 className={styles.title}>Grupos</h1>
       <p className={styles.subtitle}>Cursos y clases de la iglesia</p>
       <div className={styles.toolbar}>
