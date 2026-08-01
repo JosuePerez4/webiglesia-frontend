@@ -12,8 +12,12 @@ import { InicioTab } from '../features/admin/InicioTab';
 import { UsuariosTab } from '../features/admin/UsuariosTab';
 import { AdminsPanel } from '../features/admin/AdminsPanel';
 import { ProfesorLayout } from '../features/profesor/ProfesorLayout';
+import { PerfilTab } from '../features/profesor/PerfilTab';
 import { GruposList } from '../features/profesor/GruposList';
 import { GrupoDetail } from '../features/profesor/GrupoDetail';
+import { EstudiantesTab as GrupoEstudiantesTab } from '../features/profesor/GrupoDetail/EstudiantesTab';
+import { AsistenciaTab } from '../features/profesor/GrupoDetail/AsistenciaTab';
+import { HistorialTab } from '../features/profesor/GrupoDetail/HistorialTab';
 import { StudentPlaceholder } from '../features/estudiante/StudentPlaceholder';
 
 function LoginRoute() {
@@ -50,8 +54,15 @@ export function AppRoutes() {
 
       <Route path="/profesor" element={<ProtectedRoute allowedRoles={['PROFESOR']} />}>
         <Route element={<ProfesorLayout />}>
-          <Route index element={<GruposList />} />
-          <Route path="grupos/:id" element={<GrupoDetail />} />
+          <Route index element={<Navigate to="grupos" replace />} />
+          <Route path="perfil" element={<PerfilTab />} />
+          <Route path="grupos" element={<GruposList />} />
+          <Route path="grupos/:id" element={<GrupoDetail />}>
+            <Route index element={<Navigate to="estudiantes" replace />} />
+            <Route path="estudiantes" element={<GrupoEstudiantesTab />} />
+            <Route path="asistencia" element={<AsistenciaTab />} />
+            <Route path="historial" element={<HistorialTab />} />
+          </Route>
         </Route>
       </Route>
 
