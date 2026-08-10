@@ -21,14 +21,16 @@ import { HistorialTab } from '../features/profesor/GrupoDetail/HistorialTab';
 import { StudentPlaceholder } from '../features/estudiante/StudentPlaceholder';
 
 function LoginRoute() {
-  const { usuario } = useAuth();
-  if (usuario) return <Navigate to={homeForRole(usuario.rol)} replace />;
+  const { usuario, loading } = useAuth();
+  if (loading) return null;
+  if (usuario) return <Navigate to={homeForRole(usuario.rolActivo)} replace />;
   return <Login />;
 }
 
 function RootRedirect() {
-  const { usuario } = useAuth();
-  return <Navigate to={usuario ? homeForRole(usuario.rol) : '/login'} replace />;
+  const { usuario, loading } = useAuth();
+  if (loading) return null;
+  return <Navigate to={usuario ? homeForRole(usuario.rolActivo) : '/login'} replace />;
 }
 
 export function AppRoutes() {

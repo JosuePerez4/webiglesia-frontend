@@ -3,6 +3,7 @@ import type { Usuario } from '../types';
 
 export interface AuthContextValue {
   usuario: Usuario | null;
+  loading: boolean;
   login: (usuario: Usuario) => void;
   logout: () => void;
 }

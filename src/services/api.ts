@@ -1,20 +1,50 @@
-import type { Usuario, Profesor, Estudiante, Grupo, Clase, Administrador } from '../types';
+import type { Usuario, Profesor, Estudiante, Grupo, Clase, Administrador, Rol } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const TOKEN_KEY = 'iglesia_token';
 
 interface BackendErrorBody {
   message?: string;
   errors?: Record<string, string>;
 }
 
+export class AuthError extends Error {
+  constructor() {
+    super('Sesión expirada');
+    this.name = 'AuthError';
+  }
+}
+
+function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setAuthToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearAuthToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options?.headers as Record<string, string> | undefined),
+  };
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
+
+  if (res.status === 401) {
+    console.warn(`[API 401] ${options?.method ?? 'GET'} ${path} — token presente: ${!!token}`);
+    localStorage.removeItem(TOKEN_KEY);
+    throw new AuthError();
+  }
 
   if (!res.ok) {
     let message = `Error en el servidor backend: código de respuesta ${res.status}`;
@@ -50,11 +80,33 @@ function activoQueryValue(activo?: ActivoParam): string | undefined {
 }
 
 // API Functions connecting strictly to Backend
+interface BackendLoginResponse {
+  id: string;
+  username: string;
+  rolesDisponibles: Rol[];
+  rolActivo: Rol;
+  activo: boolean;
+  token: string;
+}
+
 export const api = {
-  login: (username: string, contrasena: string) =>
-    request<Usuario>('/usuarios/login', {
+  login: (username: string, contrasena: string, rol?: Rol) =>
+    request<BackendLoginResponse>('/usuarios/login', {
       method: 'POST',
-      body: JSON.stringify({ nombreusuario: username, contrasena })
+      body: JSON.stringify({ nombreusuario: username, contrasena, rol })
+    }).then((res): Usuario => {
+      try {
+        const payload = JSON.parse(atob(res.token.split('.')[1]));
+        console.log('[JWT] roles en token:', payload.roles, '| rolActivo:', res.rolActivo);
+      } catch { /* ignore */ }
+      return {
+        id: res.id,
+        nombreusuario: res.username,
+        roles: res.rolesDisponibles,
+        rolActivo: res.rolActivo,
+        activo: res.activo,
+        token: res.token,
+      };
     }),
 
   // Usuarios
@@ -67,11 +119,20 @@ export const api = {
       body: JSON.stringify({ activo })
     }),
 
-  editarUsuario: (id: string, data: { nombreusuario: string; contrasena: string }) =>
+  editarUsuario: (id: string, data: { nombreusuario: string; contrasena?: string }) =>
     request<Usuario>(`/usuarios/editar/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
+
+  asignarRoles: (usuarioId: string, roles: Rol[]) =>
+    request<void>(`/usuarios/${usuarioId}/roles`, {
+      method: 'PATCH',
+      body: JSON.stringify({ roles })
+    }),
+
+  getUsuarioRoles: (id: string) =>
+    request<Usuario>(`/usuarios/${id}`),
 
   // Administradores
   getAdministradores: () =>
