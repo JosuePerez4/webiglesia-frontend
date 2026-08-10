@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
+import { RoleSelector } from '../../components/ui/RoleSelector';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 import modalStyles from '../../components/ui/Modal.module.css';
-import type { Estudiante, Grupo } from '../../types';
+import type { Estudiante, Grupo, Rol } from '../../types';
 
 export interface EstudianteFormValues {
   nombre: string;
@@ -10,6 +12,7 @@ export interface EstudianteFormValues {
   fechaDeNacimiento: string;
   correo: string;
   grupoId: string;
+  roles: Rol[];
 }
 
 const emptyForm: EstudianteFormValues = {
@@ -19,9 +22,10 @@ const emptyForm: EstudianteFormValues = {
   fechaDeNacimiento: '',
   correo: '',
   grupoId: '',
+  roles: ['ESTUDIANTE'],
 };
 
-function initialForm(editingEstudiante: Estudiante | null): EstudianteFormValues {
+function initialForm(editingEstudiante: Estudiante | null, initialRoles: Rol[]): EstudianteFormValues {
   if (!editingEstudiante) return emptyForm;
   return {
     nombre: editingEstudiante.nombre,
@@ -30,6 +34,7 @@ function initialForm(editingEstudiante: Estudiante | null): EstudianteFormValues
     fechaDeNacimiento: editingEstudiante.fechaDeNacimiento || '',
     correo: editingEstudiante.correo || '',
     grupoId: editingEstudiante.grupoId || '',
+    roles: initialRoles,
   };
 }
 
@@ -37,15 +42,14 @@ interface EstudianteFormModalProps {
   open: boolean;
   editingEstudiante: Estudiante | null;
   grupos: Grupo[];
-  /** Deshabilita el formulario mientras el guardado está en vuelo. */
+  initialRoles: Rol[];
   submitting?: boolean;
   onClose: () => void;
   onSubmit: (values: EstudianteFormValues) => Promise<void>;
 }
 
-/** Render with a `key` that changes on every open so the form state resets fresh instead of syncing via effect. */
-export function EstudianteFormModal({ open, editingEstudiante, grupos, submitting = false, onClose, onSubmit }: EstudianteFormModalProps) {
-  const [form, setForm] = useState<EstudianteFormValues>(() => initialForm(editingEstudiante));
+export function EstudianteFormModal({ open, editingEstudiante, grupos, initialRoles, submitting = false, onClose, onSubmit }: EstudianteFormModalProps) {
+  const [form, setForm] = useState<EstudianteFormValues>(() => initialForm(editingEstudiante, initialRoles));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,21 +81,28 @@ export function EstudianteFormModal({ open, editingEstudiante, grupos, submittin
         </div>
 
         <div>
-          <label htmlFor="stdAdmGroup">Asignar a Grupo</label>
-          <select id="stdAdmGroup" value={form.grupoId} onChange={(e) => setForm({ ...form, grupoId: e.target.value })}>
-            <option value="">-- Sin Grupo (Disponible) --</option>
-            {grupos.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.nombre}
-              </option>
-            ))}
-          </select>
+          <label htmlFor="stdAdmBirth">Fecha de Nacimiento</label>
+          <input id="stdAdmBirth" type="date" value={form.fechaDeNacimiento} onChange={(e) => setForm({ ...form, fechaDeNacimiento: e.target.value })} />
+        </div>
+
+        <div>
+          <label>Asignar a Grupo</label>
+          <CustomSelect
+            value={form.grupoId}
+            placeholder="-- Sin Grupo (Disponible) --"
+            options={grupos.map((g) => ({ value: g.id, label: g.nombre }))}
+            onChange={(grupoId) => setForm({ ...form, grupoId })}
+          />
         </div>
 
         <div>
           <label htmlFor="stdAdmEmail">Correo Electrónico</label>
           <input id="stdAdmEmail" type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} />
         </div>
+
+        {editingEstudiante && (
+          <RoleSelector value={form.roles} onChange={(roles) => setForm({ ...form, roles })} />
+        )}
 
         <div className={modalStyles.footer}>
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
