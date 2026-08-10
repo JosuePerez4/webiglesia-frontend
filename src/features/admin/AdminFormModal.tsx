@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
+import { RoleSelector } from '../../components/ui/RoleSelector';
 import modalStyles from '../../components/ui/Modal.module.css';
-import type { Administrador } from '../../types';
+import type { Administrador, Rol } from '../../types';
 
 export interface AdminFormValues {
   nombre: string;
@@ -11,6 +12,7 @@ export interface AdminFormValues {
   correo: string;
   username: string;
   contrasena: string;
+  roles: Rol[];
 }
 
 const emptyForm: AdminFormValues = {
@@ -21,9 +23,10 @@ const emptyForm: AdminFormValues = {
   correo: '',
   username: '',
   contrasena: '',
+  roles: ['ADMIN'],
 };
 
-function initialForm(editingAdmin: Administrador | null): AdminFormValues {
+function initialForm(editingAdmin: Administrador | null, initialRoles: Rol[]): AdminFormValues {
   if (!editingAdmin) return emptyForm;
   return {
     nombre: editingAdmin.nombre,
@@ -33,28 +36,28 @@ function initialForm(editingAdmin: Administrador | null): AdminFormValues {
     correo: editingAdmin.correo || '',
     username: editingAdmin.username,
     contrasena: '',
+    roles: initialRoles,
   };
 }
 
 interface AdminFormModalProps {
   open: boolean;
   editingAdmin: Administrador | null;
-  /** Deshabilita el formulario mientras el guardado está en vuelo. */
+  initialRoles: Rol[];
   submitting?: boolean;
+  canEditRoles?: boolean;
   onClose: () => void;
   onSubmit: (values: AdminFormValues) => Promise<void>;
 }
 
-/** Crear pide el perfil completo (nombre/apellido/etc + credenciales); editar
- * solo puede tocar usuario/contraseña porque no existe PUT /administradores/{id}. */
-export function AdminFormModal({ open, editingAdmin, submitting = false, onClose, onSubmit }: AdminFormModalProps) {
-  const [form, setForm] = useState<AdminFormValues>(() => initialForm(editingAdmin));
+export function AdminFormModal({ open, editingAdmin, initialRoles, submitting = false, canEditRoles = true, onClose, onSubmit }: AdminFormModalProps) {
+  const [form, setForm] = useState<AdminFormValues>(() => initialForm(editingAdmin, initialRoles));
   const isEditing = Boolean(editingAdmin);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.username.trim() || !form.contrasena.trim()) return;
-    if (!isEditing && (!form.nombre.trim() || !form.apellido.trim())) return;
+    if (!form.username.trim()) return;
+    if (!isEditing && (!form.contrasena.trim() || !form.nombre.trim() || !form.apellido.trim())) return;
     await onSubmit(form);
   };
 
@@ -112,17 +115,16 @@ export function AdminFormModal({ open, editingAdmin, submitting = false, onClose
           <input
             id="afPassword"
             type="password"
-            required
+            required={!isEditing}
             value={form.contrasena}
             onChange={(e) => setForm({ ...form, contrasena: e.target.value })}
-            placeholder={isEditing ? 'Ingresa la contraseña de nuevo' : undefined}
+            placeholder={isEditing ? 'Dejar vacío para conservar la actual' : undefined}
           />
-          {isEditing && (
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
-              El backend requiere la contraseña en cada edición, no se puede dejar en blanco para conservarla.
-            </p>
-          )}
         </div>
+
+        {isEditing && canEditRoles && (
+          <RoleSelector value={form.roles} onChange={(roles) => setForm({ ...form, roles })} />
+        )}
 
         <div className={modalStyles.footer}>
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>

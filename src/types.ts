@@ -1,9 +1,12 @@
+export type Rol = 'ADMIN' | 'PROFESOR' | 'ESTUDIANTE';
+
 export interface Usuario {
-  id?: string;
+  id: string;
   nombreusuario: string;
-  contrasena?: string;
-  rol: 'ADMIN' | 'PROFESOR' | 'ESTUDIANTE';
-  activo?: boolean;
+  roles: Rol[];
+  rolActivo: Rol;
+  activo: boolean;
+  token?: string;
 }
 
 export interface Profesor {

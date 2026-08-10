@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, RotateCcw, Shield, Trash2, UserPlus } from 'lucide-react';
-import { api } from '../../services/api';
+import { Edit2, Shield, UserPlus, UserMinus, UserCheck, PowerOff } from 'lucide-react';
+import { api, AuthError } from '../../services/api';
 import { qkRoot } from '../../services/queryKeys';
 import { useToast } from '../../components/ui/useToast';
+import { useAuth } from '../../context/useAuth';
 import { useAdministradores } from '../../hooks/useAdministradores';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
@@ -12,14 +13,17 @@ import { Badge } from '../../components/ui/Badge';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { ActivoFilter } from '../../components/ui/ActivoFilter';
 import { type ActivoFilterValue } from '../../components/ui/activoFilterValue';
+import { ActionsDropdown, type ActionsDropdownItem } from '../../components/ui/ActionsDropdown';
 import { AdminFormModal, type AdminFormValues } from './AdminFormModal';
-import type { Administrador } from '../../types';
+import type { Administrador, Rol } from '../../types';
 import dataTableStyles from '../../components/ui/DataTable.module.css';
 import styles from './ProfesoresTab.module.css';
 
 export function AdminsPanel() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const { usuario, logout } = useAuth();
+  const isAdmin = usuario?.rolActivo === 'ADMIN';
 
   const [search, setSearch] = useState('');
   const [activoFilter, setActivoFilter] = useState<ActivoFilterValue>('all');
@@ -27,8 +31,10 @@ export function AdminsPanel() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<Administrador | null>(null);
+  const [editingRoles, setEditingRoles] = useState<Rol[]>(['ADMIN']);
   const [modalKey, setModalKey] = useState(0);
-  const [adminToToggle, setAdminToToggle] = useState<Administrador | null>(null);
+  const [adminToConfirm, setAdminToConfirm] = useState<Administrador | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'quitarRol' | 'asignarRol' | 'desactivar' | null>(null);
 
   // GET /administradores no soporta ?activo=/?query= como sí lo hacen
   // /profesores y /estudiantes, así que ambos filtros se aplican en cliente.
@@ -41,8 +47,22 @@ export function AdminsPanel() {
     );
   });
 
-  const openModal = (admin?: Administrador) => {
+  const openModal = async (admin?: Administrador) => {
     setEditingAdmin(admin ?? null);
+    if (admin) {
+      try {
+        const usuario = await api.getUsuarioRoles(admin.id);
+        setEditingRoles(usuario.roles);
+      } catch (err) {
+        if (err instanceof AuthError) {
+          logout();
+          return;
+        }
+        setEditingRoles(['ADMIN']);
+      }
+    } else {
+      setEditingRoles(['ADMIN']);
+    }
     setModalKey((k) => k + 1);
     setIsModalOpen(true);
   };
@@ -50,7 +70,14 @@ export function AdminsPanel() {
   const guardar = useMutation({
     mutationFn: async (values: AdminFormValues): Promise<void> => {
       if (editingAdmin) {
-        await api.editarUsuario(editingAdmin.id, { nombreusuario: values.username, contrasena: values.contrasena });
+        const data: { nombreusuario: string; contrasena?: string } = { nombreusuario: values.username };
+        if (values.contrasena.trim()) {
+          data.contrasena = values.contrasena;
+        }
+        await api.editarUsuario(editingAdmin.id, data);
+        if (isAdmin) {
+          await api.asignarRoles(editingAdmin.id, values.roles);
+        }
       } else {
         await api.crearAdministrador(values);
       }
@@ -61,17 +88,42 @@ export function AdminsPanel() {
       await queryClient.invalidateQueries({ queryKey: qkRoot.administradores });
       showToast(wasEditing ? 'Administrador actualizado correctamente' : 'Administrador creado correctamente');
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al guardar el administrador', 'error'),
+    onError: (err) => {
+      if (err instanceof AuthError) { logout(); return; }
+      showToast(err instanceof Error ? err.message : 'Error al guardar el administrador', 'error');
+    },
   });
 
-  const toggleActivo = useMutation({
-    mutationFn: ({ id, activo }: { id: string; activo: boolean }) => api.cambiarEstadoUsuario(id, activo),
-    onSuccess: async (_data, { activo }) => {
-      await queryClient.invalidateQueries({ queryKey: qkRoot.administradores });
-      showToast(activo ? 'Administrador reactivado correctamente' : 'Administrador eliminado correctamente');
+  const toggleRol = useMutation({
+    mutationFn: async ({ id, quitar }: { id: string; quitar: boolean }) => {
+      const usuario = await api.getUsuarioRoles(id);
+      const nuevosRoles = quitar
+        ? usuario.roles.filter((r) => r !== 'ADMIN')
+        : [...new Set([...usuario.roles, 'ADMIN' as Rol])];
+      await api.asignarRoles(id, nuevosRoles);
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : 'Error al cambiar el estado del administrador', 'error'),
-    onSettled: () => setAdminToToggle(null),
+    onSuccess: async (_data, { quitar }) => {
+      await queryClient.invalidateQueries({ queryKey: qkRoot.administradores });
+      showToast(quitar ? 'Rol de Administrador removido correctamente' : 'Rol de Administrador asignado correctamente');
+    },
+    onError: (err) => {
+      if (err instanceof AuthError) { logout(); return; }
+      showToast(err instanceof Error ? err.message : 'Error al cambiar el rol del administrador', 'error');
+    },
+    onSettled: () => { setAdminToConfirm(null); setConfirmAction(null); },
+  });
+
+  const desactivarUsuario = useMutation({
+    mutationFn: (id: string) => api.cambiarEstadoUsuario(id, false),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: qkRoot.administradores });
+      showToast('Administrador desactivado correctamente');
+    },
+    onError: (err) => {
+      if (err instanceof AuthError) { logout(); return; }
+      showToast(err instanceof Error ? err.message : 'Error al desactivar el administrador', 'error');
+    },
+    onSettled: () => { setAdminToConfirm(null); setConfirmAction(null); },
   });
 
   const columns: DataTableColumn<Administrador>[] = [
@@ -115,48 +167,66 @@ export function AdminsPanel() {
         rowKey={(a) => a.id}
         emptyIcon={<Shield size={40} />}
         emptyTitle="No se encontraron administradores"
-        actions={(a) => (
-          <>
-            <button className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => openModal(a)}>
-              <Edit2 size={14} /> Editar
-            </button>
-            {a.activo ? (
-              <button className="btn btn-danger" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => setAdminToToggle(a)}>
-                <Trash2 size={14} /> Eliminar
+        actions={(a) => {
+          const items: ActionsDropdownItem[] = [
+            { label: 'Quitar rol Admin', icon: <UserMinus size={14} />, danger: true, onClick: () => { setAdminToConfirm(a); setConfirmAction('quitarRol'); } },
+            { label: 'Asignar rol Admin', icon: <UserCheck size={14} />, onClick: () => { setAdminToConfirm(a); setConfirmAction('asignarRol'); } },
+            { label: 'Desactivar usuario', icon: <PowerOff size={14} />, danger: true, onClick: () => { setAdminToConfirm(a); setConfirmAction('desactivar'); } },
+          ];
+          return (
+            <>
+              <button className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => openModal(a)}>
+                <Edit2 size={14} /> Editar
               </button>
-            ) : (
-              <button className="btn btn-success" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => setAdminToToggle(a)}>
-                <RotateCcw size={14} /> Reactivar
-              </button>
-            )}
-          </>
-        )}
+              <ActionsDropdown items={items} />
+            </>
+          );
+        }}
       />
 
       <AdminFormModal
         key={modalKey}
         open={isModalOpen}
         editingAdmin={editingAdmin}
+        initialRoles={editingRoles}
         submitting={guardar.isPending}
+        canEditRoles={isAdmin}
         onClose={() => setIsModalOpen(false)}
         onSubmit={async (values) => { await guardar.mutateAsync(values).catch(() => {}); }}
       />
 
       <ConfirmDialog
-        open={adminToToggle !== null}
-        title={adminToToggle?.activo ? 'Eliminar Administrador' : 'Reactivar Administrador'}
-        description={
-          adminToToggle?.activo
-            ? `¿Estás seguro de que deseas eliminar a "${adminToToggle?.nombre} ${adminToToggle?.apellido}"? Esta acción desactiva su cuenta de acceso.`
-            : `¿Deseas reactivar la cuenta de "${adminToToggle?.nombre} ${adminToToggle?.apellido}"? Podrá volver a iniciar sesión.`
+        open={adminToConfirm !== null && confirmAction !== null}
+        title={
+          confirmAction === 'quitarRol' ? 'Quitar rol de Administrador'
+          : confirmAction === 'asignarRol' ? 'Asignar rol de Administrador'
+          : 'Desactivar usuario'
         }
-        confirmLabel={adminToToggle?.activo ? 'Eliminar' : 'Reactivar'}
-        confirming={toggleActivo.isPending}
-        danger={adminToToggle?.activo ?? true}
+        description={
+          confirmAction === 'quitarRol'
+            ? `"${adminToConfirm?.nombre} ${adminToConfirm?.apellido}" dejará de tener acceso como Administrador. Podrá seguir accediendo con sus otros roles.`
+            : confirmAction === 'asignarRol'
+            ? `Se restaurará el rol de Administrador para "${adminToConfirm?.nombre} ${adminToConfirm?.apellido}".`
+            : `"${adminToConfirm?.nombre} ${adminToConfirm?.apellido}" será desactivado y no podrá iniciar sesión hasta que sea reactivado.`
+        }
+        confirmLabel={
+          confirmAction === 'quitarRol' ? 'Quitar rol'
+          : confirmAction === 'asignarRol' ? 'Asignar rol'
+          : 'Desactivar'
+        }
+        confirming={toggleRol.isPending || desactivarUsuario.isPending}
+        danger
         onConfirm={() => {
-          if (adminToToggle) toggleActivo.mutate({ id: adminToToggle.id, activo: !adminToToggle.activo });
+          if (!adminToConfirm || !confirmAction) return;
+          if (confirmAction === 'quitarRol') {
+            toggleRol.mutate({ id: adminToConfirm.id, quitar: true });
+          } else if (confirmAction === 'asignarRol') {
+            toggleRol.mutate({ id: adminToConfirm.id, quitar: false });
+          } else {
+            desactivarUsuario.mutate(adminToConfirm.id);
+          }
         }}
-        onCancel={() => setAdminToToggle(null)}
+        onCancel={() => { setAdminToConfirm(null); setConfirmAction(null); }}
       />
     </div>
   );

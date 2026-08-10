@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
+import { RoleSelector } from '../../components/ui/RoleSelector';
 import modalStyles from '../../components/ui/Modal.module.css';
-import type { Profesor } from '../../types';
+import type { Profesor, Rol } from '../../types';
 
 export interface ProfesorFormValues {
   nombre: string;
@@ -9,6 +10,7 @@ export interface ProfesorFormValues {
   telefono: string;
   fechaDeNacimiento: string;
   correo: string;
+  roles: Rol[];
 }
 
 const emptyForm: ProfesorFormValues = {
@@ -17,9 +19,10 @@ const emptyForm: ProfesorFormValues = {
   telefono: '',
   fechaDeNacimiento: '',
   correo: '',
+  roles: ['PROFESOR'],
 };
 
-function initialForm(editingProfesor: Profesor | null): ProfesorFormValues {
+function initialForm(editingProfesor: Profesor | null, initialRoles: Rol[]): ProfesorFormValues {
   if (!editingProfesor) return emptyForm;
   return {
     nombre: editingProfesor.nombre,
@@ -27,21 +30,21 @@ function initialForm(editingProfesor: Profesor | null): ProfesorFormValues {
     telefono: editingProfesor.telefono || '',
     fechaDeNacimiento: editingProfesor.fechaDeNacimiento || '',
     correo: editingProfesor.correo || '',
+    roles: initialRoles,
   };
 }
 
 interface ProfesorFormModalProps {
   open: boolean;
   editingProfesor: Profesor | null;
-  /** Deshabilita el formulario mientras el guardado está en vuelo. */
+  initialRoles: Rol[];
   submitting?: boolean;
   onClose: () => void;
   onSubmit: (values: ProfesorFormValues) => Promise<void>;
 }
 
-/** Render with a `key` that changes on every open so the form state resets fresh instead of syncing via effect. */
-export function ProfesorFormModal({ open, editingProfesor, submitting = false, onClose, onSubmit }: ProfesorFormModalProps) {
-  const [form, setForm] = useState<ProfesorFormValues>(() => initialForm(editingProfesor));
+export function ProfesorFormModal({ open, editingProfesor, initialRoles, submitting = false, onClose, onSubmit }: ProfesorFormModalProps) {
+  const [form, setForm] = useState<ProfesorFormValues>(() => initialForm(editingProfesor, initialRoles));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +80,10 @@ export function ProfesorFormModal({ open, editingProfesor, submitting = false, o
           <label htmlFor="pfEmail">Correo Electrónico</label>
           <input id="pfEmail" type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} />
         </div>
+
+        {editingProfesor && (
+          <RoleSelector value={form.roles} onChange={(roles) => setForm({ ...form, roles })} />
+        )}
 
         <div className={modalStyles.footer}>
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>

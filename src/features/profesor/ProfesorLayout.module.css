@@ -1,6 +1,6 @@
 .profesorShell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: var(--bg-primary);
   color: var(--text-primary);
 }
@@ -9,14 +9,18 @@
   flex: 1;
   min-width: 0;
   padding: 2rem 2.5rem;
+  overflow-y: auto;
 }
 
 @media (max-width: 720px) {
   .profesorShell {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
   }
 
   .main {
     padding: 1.5rem;
+    overflow-y: visible;
   }
 }
