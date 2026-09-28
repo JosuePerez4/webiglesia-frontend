@@ -134,6 +134,24 @@ export const api = {
   getUsuarioRoles: (id: string) =>
     request<Usuario>(`/usuarios/${id}`),
 
+  cambiarContrasena: (id: string, data: { contrasenaActual: string; contrasenaNueva: string }) =>
+    request<unknown>(`/usuarios/${id}/cambiar-contrasena`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    }),
+
+  solicitarRestablecimiento: (correo: string) =>
+    request<{ message: string }>('/usuarios/olvide-contrasena', {
+      method: 'POST',
+      body: JSON.stringify({ correo })
+    }),
+
+  restablecerContrasena: (token: string, nuevaContrasena: string) =>
+    request<{ message: string }>('/usuarios/restablecer-contrasena', {
+      method: 'POST',
+      body: JSON.stringify({ token, nuevaContrasena })
+    }),
+
   // Administradores
   getAdministradores: () =>
     request<Administrador[]>('/administradores'),

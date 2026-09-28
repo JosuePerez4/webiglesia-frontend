@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../context/useAuth';
 import { useStaffDarkTheme } from '../../hooks/useStaffDarkTheme';
 import { homeForRole } from '../../routes/roleHome';
+import { ForgotPassword } from './ForgotPassword';
 import { Lock, User, Church, AlertCircle, ChevronDown, Shield, GraduationCap } from 'lucide-react';
 import type { Rol } from '../../types';
 import styles from './Login.module.css';
@@ -25,6 +26,7 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
 
   useEffect(() => {
     if (!dropdownOpen) return;
@@ -85,7 +87,9 @@ export function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        {forgotPassword ? (
+          <ForgotPassword onBack={() => setForgotPassword(false)} />
+        ) : <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
             <label htmlFor="username">Nombre de Usuario</label>
             <div className={styles.inputWrapper}>
@@ -149,7 +153,10 @@ export function Login() {
           <button type="submit" className={`btn btn-primary ${styles.submitBtn}`} disabled={loading}>
             {loading ? 'Iniciando sesión...' : 'Ingresar'}
           </button>
-        </form>
+          <button type="button" className={styles.forgotLink} onClick={() => { setError(null); setForgotPassword(true); }}>
+            ¿Olvidaste tu contraseña?
+          </button>
+        </form>}
       </div>
     </div>
   );
