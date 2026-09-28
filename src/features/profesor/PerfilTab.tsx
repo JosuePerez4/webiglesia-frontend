@@ -1,4 +1,7 @@
-import { BookOpen, Calendar, Mail, Phone, User } from 'lucide-react';
+import { useState } from 'react';
+import { BookOpen, Calendar, KeyRound, Mail, Phone, User } from 'lucide-react';
+import { api } from '../../services/api';
+import { useAuth } from '../../context/useAuth';
 import { usePerfilProfesor } from '../../hooks/usePerfilProfesor';
 import styles from './PerfilTab.module.css';
 
@@ -50,6 +53,78 @@ export function PerfilTab() {
           ))}
         </div>
       </div>
+
+      <ChangePasswordForm />
     </div>
+  );
+}
+
+function ChangePasswordForm() {
+  const { usuario } = useAuth();
+  const [contrasenaActual, setContrasenaActual] = useState('');
+  const [contrasenaNueva, setContrasenaNueva] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      await api.cambiarContrasena(usuario!.id, { contrasenaActual, contrasenaNueva });
+      setSuccess('Contraseña actualizada correctamente.');
+      setContrasenaActual('');
+      setContrasenaNueva('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo actualizar la contraseña.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className={`glass ${styles.passwordCard}`} aria-labelledby="change-password-title">
+      <div className={styles.passwordHeader}>
+        <span className={styles.fieldIcon}><KeyRound size={16} /></span>
+        <div>
+          <h2 id="change-password-title" className={styles.passwordTitle}>Cambiar contraseña</h2>
+          <p className={styles.passwordSubtitle}>Actualiza tu contraseña de acceso.</p>
+        </div>
+      </div>
+
+      {error && <div className={styles.formError} role="alert">{error}</div>}
+      {success && <div className={styles.formSuccess} role="status">{success}</div>}
+
+      <form onSubmit={handleSubmit} className={styles.passwordForm}>
+        <div>
+          <label htmlFor="current-password">Contraseña actual</label>
+          <input
+            id="current-password"
+            type="password"
+            value={contrasenaActual}
+            onChange={(event) => setContrasenaActual(event.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="new-account-password">Nueva contraseña</label>
+          <input
+            id="new-account-password"
+            type="password"
+            value={contrasenaNueva}
+            onChange={(event) => setContrasenaNueva(event.target.value)}
+            autoComplete="new-password"
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={loading || !usuario}>
+          {loading ? 'Actualizando...' : 'Cambiar contraseña'}
+        </button>
+      </form>
+    </section>
   );
 }

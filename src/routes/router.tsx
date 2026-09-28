@@ -3,6 +3,7 @@ import { useAuth } from '../context/useAuth';
 import { ProtectedRoute } from './ProtectedRoute';
 import { homeForRole } from './roleHome';
 import { Login } from '../features/auth/Login';
+import { ResetPassword } from '../features/auth/ResetPassword';
 import { AdminLayout } from '../features/admin/AdminLayout';
 import { GruposTab } from '../features/admin/GruposTab';
 import { ProfesoresTab } from '../features/admin/ProfesoresTab';
@@ -37,6 +38,7 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginRoute />} />
+      <Route path="/restablecer-contrasena" element={<ResetPassword />} />
 
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
         <Route element={<AdminLayout />}>
